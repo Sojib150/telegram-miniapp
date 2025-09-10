@@ -6,45 +6,24 @@
   <title>Telegram Mini App</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f4f6fa;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      margin: 10px auto;
-      max-width: 400px;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #0088cc;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: gray;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f4f6fa; padding: 20px; }
+    .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); margin: 10px auto; max-width: 400px; }
+    button { padding: 10px 20px; border: none; border-radius: 8px; background: #0088cc; color: white; font-size: 16px; cursor: pointer; }
+    button:disabled { background: gray; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>🔥 Telegram Mini App</h2>
-    <p id="status">Welcome! Click below to earn coins.</p>
+    <p id="status">Welcome! Your data is loading...</p>
     <button onclick="watchAd()">🎥 Watch Ad (15 sec)</button>
     <p>Your Balance: <span id="balance">0</span> coins</p>
   </div>
 
   <script>
-    // Your Firebase config
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
       authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
@@ -55,19 +34,46 @@
     };
 
     // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    // Telegram থেকে ইউজারের তথ্য
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const userId = tg.initDataUnsafe?.user?.id?.toString() || "guest_" + Date.now();
+    const userName = tg.initDataUnsafe?.user?.first_name || "Guest";
 
     let balance = 0;
 
-    function watchAd() {
+    // Load balance from Firestore
+    async function loadBalance() {
+      const docRef = db.collection("users").doc(userId);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+        balance = docSnap.data().balance;
+        document.getElementById("balance").innerText = balance;
+        document.getElementById("status").innerText = `✅ Welcome back, ${userName}!`;
+      } else {
+        await docRef.set({ balance: 0, name: userName });
+        document.getElementById("status").innerText = `👋 Hello ${userName}, new account created!`;
+      }
+    }
+
+    // Watch ad and update balance
+    async function watchAd() {
       document.getElementById("status").innerText = "⏳ Watching Ad... 15s";
-      setTimeout(() => {
-        balance += 10; // প্রতি এড দেখলে ১০ কয়েন
+      setTimeout(async () => {
+        balance += 10;
         document.getElementById("balance").innerText = balance;
         document.getElementById("status").innerText = "✅ Ad completed! +10 coins";
+
+        await db.collection("users").doc(userId).set({ balance: balance, name: userName });
       }, 15000);
     }
+
+    // Load balance on page load
+    loadBalance();
   </script>
 </body>
 </html>
