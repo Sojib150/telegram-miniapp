@@ -1,88 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Mini-App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telegram Mini App</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
   <style>
-    body { font-family: Arial; background: #f0f0f0; margin: 0; padding: 0; }
-    .container { max-width: 400px; margin: 20px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 15px #ccc; }
-    button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
-    .nav-btn { background: #4CAF50; color: white; }
-    .section { display: none; }
-    .section.active { display: block; }
-    #coins, #status { text-align: center; margin: 10px 0; }
-    #ad-btn, #play-btn { background: #2196F3; color: white; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f6fa;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      margin: 10px auto;
+      max-width: 400px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #0088cc;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: gray;
+    }
   </style>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h2>Welcome to Mini-App</h2>
-    <p id="user-info">Loading...</p>
-    <p id="coins">Coins: 0</p>
-    <p id="status"></p>
-    <button class="nav-btn" onclick="showSection('ads')">Watch Ad</button>
-    <button class="nav-btn" onclick="showSection('game')">Play Game</button>
-
-    <div id="ads" class="section">
-      <h3>Watch Ad</h3>
-      <p>Click the button and wait 15 seconds to earn coins:</p>
-      <button id="ad-btn">Watch Ad +10 Coins</button>
-    </div>
-
-    <div id="game" class="section">
-      <h3>Simple Game</h3>
-      <p>Play game: spend 5 coins, 50% chance to win 10 coins</p>
-      <button id="play-btn">Play Game</button>
-    </div>
+  <div class="card">
+    <h2>🔥 Telegram Mini App</h2>
+    <p id="status">Welcome! Click below to earn coins.</p>
+    <button onclick="watchAd()">🎥 Watch Ad (15 sec)</button>
+    <p>Your Balance: <span id="balance">0</span> coins</p>
   </div>
 
   <script>
-    Telegram.WebApp.ready();
-    const user = Telegram.WebApp.initDataUnsafe.user || { first_name: "Guest" };
-    document.getElementById("user-info").innerText = `Hello, ${user.first_name}!`;
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
 
-    let coins = 0;
-    function showSection(id) {
-      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
-      document.getElementById("status").innerText = "";
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let balance = 0;
+
+    function watchAd() {
+      document.getElementById("status").innerText = "⏳ Watching Ad... 15s";
+      setTimeout(() => {
+        balance += 10; // প্রতি এড দেখলে ১০ কয়েন
+        document.getElementById("balance").innerText = balance;
+        document.getElementById("status").innerText = "✅ Ad completed! +10 coins";
+      }, 15000);
     }
-
-    document.getElementById("ad-btn").onclick = () => {
-      document.getElementById("status").innerText = "Watching ad: 15s left...";
-      document.getElementById("ad-btn").disabled = true;
-      let time = 15;
-      const timer = setInterval(() => {
-        time--;
-        document.getElementById("status").innerText = `Watching ad: ${time}s left...`;
-        if (time === 0) {
-          clearInterval(timer);
-          coins += 10;
-          document.getElementById("coins").innerText = `Coins: ${coins}`;
-          document.getElementById("status").innerText = "Ad completed! +10 coins.";
-          document.getElementById("ad-btn").disabled = false;
-        }
-      }, 1000);
-    };
-
-    document.getElementById("play-btn").onclick = () => {
-      if (coins < 5) {
-        document.getElementById("status").innerText = "Not enough coins!";
-        return;
-      }
-      coins -= 5;
-      document.getElementById("coins").innerText = `Coins: ${coins}`;
-      if (Math.random() < 0.5) {
-        coins += 10;
-        document.getElementById("coins").innerText = `Coins: ${coins}`;
-        document.getElementById("status").innerText = "You won 10 coins!";
-      } else {
-        document.getElementById("status").innerText = "No reward this time!";
-      }
-    };
-
-    showSection("ads");
   </script>
 </body>
 </html>
