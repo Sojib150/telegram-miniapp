@@ -1,385 +1,112 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Telegram Mini App (Firebase)</title>
-
-  <!-- Firebase (web) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-
-  <!-- Telegram WebApp SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+  <meta charset="UTF-8">
+  <title>Telegram MiniApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    :root{--card:#fff;--accent:#0088cc}
-    body{font-family:Inter,Arial,Helvetica,sans-serif;background:#f3f6fb;margin:0;padding:18px;display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
-    .wrap{width:100%;max-width:420px}
-    .card{background:var(--card);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 6px 18px rgba(12,35,63,.06)}
-    h1{font-size:20px;margin:0 0 8px}
-    p.small{margin:6px 0;color:#555;font-size:13px}
-    .row{display:flex;gap:10px;margin-top:12px}
-    button{flex:1;padding:12px;border-radius:10px;border:0;font-weight:600;color:white;background:var(--accent);cursor:pointer}
-    button.ghost{background:#f1f5f9;color:#111}
-    .stat{display:flex;justify-content:space-between;padding:12px;border-radius:10px;background:#f8fafc;margin-top:12px}
-    .ad-thumb{width:100%;height:auto;border-radius:8px;cursor:pointer;border:1px solid #eee}
-    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef6;margin-top:8px}
-    .muted{color:#666;font-size:13px}
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f4f9;
+      padding: 20px;
+    }
+    h2 {
+      color: #333;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #balance-box {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    #ad-container {
+      margin-top: 30px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <h2>🔥 Telegram Mini App</h2>
+  <p id="welcome">Welcome! Earn coins by clicking the button 👇</p>
 
-    <!-- Header / Info -->
-    <div class="card">
-      <h1>🔥 Mini Earn (Telegram)</h1>
-      <p class="small" id="status">Loading... (Firebase + Telegram)</p>
+  <button id="earn">Earn 10 Coins</button>
 
-      <div class="stat">
-        <div>
-          <div class="muted">Coins</div>
-          <div id="coins" style="font-size:18px;font-weight:700">0</div>
-        </div>
-        <div>
-          <div class="muted">Wallet</div>
-          <div id="wallet" style="font-size:18px;font-weight:700">0</div>
-        </div>
-      </div>
-
-      <p class="small" style="margin-top:10px">Daily ad limit: <strong id="ad-limit">10</strong>. Each full ad: <strong id="per-ad">10</strong> coins.</p>
-
-      <div style="margin-top:10px">
-        <button id="btn-watch">▶ Watch Ad (15s)</button>
-      </div>
-
-      <div class="row">
-        <button id="btn-convert" class="ghost">Convert 100 coins → 10 ৳</button>
-        <button id="btn-withdraw" class="ghost">Request Withdraw</button>
-      </div>
-
-      <p class="muted" style="margin-top:10px">Referral link: <span id="ref-link">—</span></p>
-    </div>
-
-    <!-- Ads list / thumbnails -->
-    <div class="card">
-      <h1 style="font-size:16px">Ads (Tap to open)</h1>
-      <p class="small">Click any ad below. In the opened view you must wait 15 seconds (timer) to get coins.</p>
-
-      <!-- Ad thumbnails: you can replace images with ad provider HTML iframe if host allows -->
-      <img src="https://via.placeholder.com/300x250?text=Adsterra+Banner" id="adThumb1" class="ad-thumb" alt="Ad 1" />
-      <p class="muted" style="margin-top:8px">Ad provider 1</p>
-
-      <img src="https://via.placeholder.com/300x250?text=Other+Ad" id="adThumb2" class="ad-thumb" style="margin-top:10px" alt="Ad 2" />
-      <p class="muted">Ad provider 2</p>
-    </div>
-
-    <!-- Game area -->
-    <div class="card">
-      <h1 style="font-size:16px">Game</h1>
-      <p class="small">Play the simple game: costs 5 coins to play. 50% chance to win 10 coins.</p>
-      <div class="row">
-        <button id="play-game" class="ghost">Play Game</button>
-        <button id="spend-coin" class="ghost">Spend 20 coins</button>
-      </div>
-    </div>
-
+  <div id="balance-box">
+    <p>Balance: <span id="balance">0</span> coins</p>
   </div>
 
-<script>
-/* ============================
-   ===  CONFIGURATION AREA  ===
-   ============================
-   Replace firebaseConfig with your project's config (you already provided it).
-*/
-const firebaseConfig = {
-  apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-  authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-  projectId: "telegram-miniapp-e8cc0",
-  storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-  messagingSenderId: "827930913054",
-  appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-};
+  <!-- 🔹 Adsterra Example -->
+  <div id="ad-container">
+    <h4>Sponsored</h4>
+    <script type="text/javascript">
+      atOptions = {
+        'key' : 'eda134a8fa75db6902f36583f99bde3f',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/eda134a8fa75db6902f36583f99bde3f/invoke.js"></script>
+  </div>
 
-// per-ad coins
-const COINS_PER_AD = 10;
-const DAILY_AD_LIMIT = 10;
-const COINS_TO_CONVERT = 100; // 100 coins -> CONVERT_AMOUNT
-const CONVERT_AMOUNT = 10;    // -> 10 (currency units; you decide it's taka)
-const MIN_WITHDRAW = 100;     // min wallet to request withdraw
-const REQUIRED_REFERRALS = 10; // referrals required to allow withdraw
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-/* ============================
-   ===  FIREBASE INIT & DB  ===
-   ============================ */
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-let CURRENT_USER_ID = null;   // string (telegram id)
-let CURRENT_USER_NAME = "Guest";
-let userDocRef = null;
-
-/* ========== Utilities ========== */
-// small device id via localStorage (anti-cheat basic)
-function getDeviceId() {
-  let id = localStorage.getItem('miniapp_device_id');
-  if (!id) {
-    id = 'dev-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
-    localStorage.setItem('miniapp_device_id', id);
-  }
-  return id;
-}
-
-/* ========== Telegram integration ========== */
-const tg = window.Telegram?.WebApp || null;
-try { if (tg) tg.ready(); } catch(e){/*ignore*/}
-
-function getTelegramUser() {
-  // If inside Telegram WebApp this returns actual user
-  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    const u = tg.initDataUnsafe.user;
-    return { id: String(u.id), name: u.first_name || (u.username||'User') };
-  }
-  // fallback: look for URL query `guest` or random id for testing outside Telegram
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('test')) {
-    return { id: 'test_' + urlParams.get('test'), name: 'TestUser' };
-  }
-  return null; // not in Telegram
-}
-
-/* ========== Referral (via URL ?ref=12345) ========= */
-function getReferralFromUrl() {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('ref') || null;
-}
-
-/* ========== Register / load user ========== */
-async function registerAndLoad() {
-  const tgUser = getTelegramUser();
-  if (!tgUser) {
-    // not inside Telegram — create a guest id (for testing only)
-    CURRENT_USER_ID = localStorage.getItem('miniapp_guest_id') || null;
-    if (!CURRENT_USER_ID) {
-      CURRENT_USER_ID = 'guest_' + Date.now();
-      localStorage.setItem('miniapp_guest_id', CURRENT_USER_ID);
-    }
-    CURRENT_USER_NAME = 'Guest';
-    userDocRef = db.collection('users').doc(CURRENT_USER_ID);
-    await createIfNotExists({});
-    updateUI();
-    document.getElementById('status').innerText = "Running as Guest (Telegram not detected)";
-    return;
-  }
-
-  // inside Telegram
-  CURRENT_USER_ID = tgUser.id;
-  CURRENT_USER_NAME = tgUser.name || 'User';
-  userDocRef = db.collection('users').doc(CURRENT_USER_ID);
-
-  // Anti-cheat: check device duplication (basic check client-side)
-  const deviceId = getDeviceId();
-  // create user if not exists, and handle referral if present
-  const doc = await userDocRef.get();
-  if (doc.exists) {
-    // load
-    updateUI();
-    document.getElementById('status').innerText = `Welcome back, ${CURRENT_USER_NAME}!`;
-  } else {
-    // new user -> check if device id already used by other user
-    const q = await db.collection('users').where('device_id','==', deviceId).get();
-    if (!q.empty) {
-      // device already used
-      document.getElementById('status').innerText = "একটি ডিভাইস থেকে একাধিক অ্যাকাউন্ট তৈরি করা যাবে না। Support-এ যোগাযোগ করুন।";
-      // still create guest-like doc but mark blocked: (you can choose to stop)
-      // For now we refuse and stop
-      return;
-    }
-
-    // create new user doc
-    const refFromUrl = getReferralFromUrl();
-    const initialData = {
-      name: CURRENT_USER_NAME,
-      device_id: deviceId,
-      coins: 0,
-      wallet: 0,
-      ads_viewed_today: 0,
-      last_view_date: null,
-      total_referrals: 0,
-      referrals: []
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
     };
-    await userDocRef.set(initialData);
 
-    // process referral: add to referrer if provided and valid
-    if (refFromUrl && refFromUrl !== CURRENT_USER_ID) {
-      // ensure referrer exists
-      const refDoc = db.collection('users').doc(refFromUrl);
-      const r = await refDoc.get();
-      if (r.exists) {
-        // avoid duplicates
-        const refData = r.data();
-        if (!refData.referrals || !refData.referrals.includes(CURRENT_USER_ID)) {
-          await refDoc.update({
-            referrals: firebase.firestore.FieldValue.arrayUnion(CURRENT_USER_ID),
-            total_referrals: firebase.firestore.FieldValue.increment(1),
-            coins: firebase.firestore.FieldValue.increment(20) // referral bonus
-          });
-        }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ⚡ Telegram WebApp থেকে ইউজার আইডি আনা (না পারলে demoUser)
+    let userId = "demoUser";
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user?.id) {
+      userId = Telegram.WebApp.initDataUnsafe.user.id.toString();
+    }
+
+    async function loadBalance() {
+      const ref = doc(db, "users", userId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        document.getElementById("balance").textContent = snap.data().balance;
+      } else {
+        await setDoc(ref, { balance: 0 });
+        document.getElementById("balance").textContent = 0;
       }
     }
-    document.getElementById('status').innerText = `স্বাগতম, ${CURRENT_USER_NAME}! অ্যাকাউন্ট তৈরি হয়েছে।`;
-  }
 
-  // update ref link UI
-  const botUsername = (typeof BOT_USERNAME !== 'undefined') ? BOT_USERNAME : 'YOUR_BOT_USERNAME';
-  document.getElementById('ref-link').innerText = `t.me/${botUsername}?start=${CURRENT_USER_ID}`;
-  updateUI();
-}
-
-/* ========== Helpers: load and update UI ========== */
-async function createIfNotExists(data) {
-  const snap = await userDocRef.get();
-  if (!snap.exists) {
-    await userDocRef.set(Object.assign({ coins:0, wallet:0, ads_viewed_today:0, last_view_date:null, referrals:[], total_referrals:0 }, data || {}));
-  }
-}
-
-async function updateUI() {
-  const snap = await userDocRef.get();
-  if (!snap.exists) return;
-  const d = snap.data();
-  document.getElementById('coins').innerText = (d.coins || 0);
-  document.getElementById('wallet').innerText = (d.wallet || 0);
-  document.getElementById('ad-limit').innerText = DAILY_AD_LIMIT;
-  document.getElementById('per-ad').innerText = COINS_PER_AD;
-}
-
-/* ========== Ads watching logic (15s + DB update + daily limit) ========== */
-let adTimerRunning = false;
-document.getElementById('btn-watch').addEventListener('click', async function(){
-  if (adTimerRunning) return;
-  if (!userDocRef) { alert('User not ready'); return; }
-
-  // refresh user doc
-  const snap = await userDocRef.get();
-  if (!snap.exists) { alert('User doc missing'); return; }
-  const data = snap.data();
-  const today = new Date().toISOString().slice(0,10);
-  let viewedToday = data.ads_viewed_today || 0;
-  let lastDate = data.last_view_date || null;
-  if (lastDate !== today) {
-    // reset count
-    viewedToday = 0;
-    await userDocRef.update({ ads_viewed_today: 0, last_view_date: today });
-  }
-  if (viewedToday >= DAILY_AD_LIMIT) {
-    document.getElementById('status').innerText = "আজকের অ্যাড লিমিট শেষ হয়েছে।";
-    return;
-  }
-
-  // Simulate opening the ad (in real case you'd open ad provider url)
-  adTimerRunning = true;
-  document.getElementById('status').innerText = "অ্যাড চলছে — 15 সেকেন্ড অপেক্ষা করুন...";
-  document.getElementById('btn-watch').disabled = true;
-
-  let seconds = 15;
-  const interval = setInterval(() => {
-    seconds--;
-    document.getElementById('status').innerText = `অ্যাড চলছে — ${seconds} সেকেন্ড বাকি...`;
-    if (seconds <= 0) {
-      clearInterval(interval);
-      adTimerRunning = false;
-      document.getElementById('btn-watch').disabled = false;
-      // update DB: increment ads_viewed_today and coins
-      userDocRef.update({
-        ads_viewed_today: firebase.firestore.FieldValue.increment(1),
-        coins: firebase.firestore.FieldValue.increment(COINS_PER_AD),
-        last_view_date: today
-      }).then(() => {
-        updateUI();
-        document.getElementById('status').innerText = `অ্যাড সম্পন্ন! +${COINS_PER_AD} কয়েন।`;
-      }).catch(err => {
-        console.error(err);
-        document.getElementById('status').innerText = "DB update error";
-      });
+    async function addCoins() {
+      const ref = doc(db, "users", userId);
+      await updateDoc(ref, { balance: increment(10) });
+      loadBalance();
     }
-  }, 1000);
-});
 
-/* ========== Thumbnail click opens external ad page with timer modal (optional) ========== */
-document.getElementById('adThumb1').addEventListener('click', ()=> openAdExternal('https://www.highperformanceformat.com/eda134a8fa75db6902f36583f99bde3f'));
-document.getElementById('adThumb2').addEventListener('click', ()=> openAdExternal('https://pl27590823.revenuecpmgate.com'));
-
-function openAdExternal(url) {
-  // Open in new tab/window — advise user to watch 15s and then come back
-  window.open(url, '_blank');
-  // start local timer as well
-  document.getElementById('status').innerText = 'Ad opened in new tab — wait 15s then click "Watch Ad" here to confirm.';
-}
-
-/* ========== Coins conversion ========== */
-document.getElementById('btn-convert').addEventListener('click', async () => {
-  if (!userDocRef) return alert('Not ready');
-  const snap = await userDocRef.get();
-  const d = snap.data();
-  const coins = d.coins || 0;
-  if (coins < COINS_TO_CONVERT) return alert('You need at least '+COINS_TO_CONVERT+' coins to convert.');
-  const times = Math.floor(coins / COINS_TO_CONVERT);
-  const addWallet = times * CONVERT_AMOUNT;
-  const remainingCoins = coins % COINS_TO_CONVERT;
-  await userDocRef.update({ coins: remainingCoins, wallet: firebase.firestore.FieldValue.increment(addWallet) });
-  updateUI();
-  document.getElementById('status').innerText = `Converted ${times*COINS_TO_CONVERT} coins → ${addWallet} ৳ in wallet.`;
-});
-
-/* ========== Withdraw request ========== */
-document.getElementById('btn-withdraw').addEventListener('click', async () => {
-  if (!userDocRef) return alert('Not ready');
-  const snap = await userDocRef.get();
-  const d = snap.data();
-  if ((d.wallet || 0) < MIN_WITHDRAW) return alert(`Minimum withdraw ${MIN_WITHDRAW} required.`);
-  if ((d.total_referrals || 0) < REQUIRED_REFERRALS) return alert(`You must refer ${REQUIRED_REFERRALS} users before withdrawing.`);
-
-  const phone = prompt('Enter your bKash number (e.g. 01XXXXXXXXX):');
-  if (!phone) return;
-
-  // save withdraw request
-  await db.collection('withdraws').add({
-    telegram_id: CURRENT_USER_ID,
-    amount: d.wallet,
-    method: 'bKash',
-    account: phone,
-    status: 'pending',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-  // mark pending flag
-  await userDocRef.update({ pending_withdraw_request: true });
-
-  document.getElementById('status').innerText = 'Withdraw request submitted. Admin will approve soon.';
-});
-
-/* ========== Game play ========== */
-document.getElementById('play-game').addEventListener('click', async () => {
-  if (!userDocRef) return;
-  const snap = await userDocRef.get();
-  let c = snap.data().coins || 0;
-  if (c < 5) { document.getElementById('status').innerText = 'Not enough coins to play (cost 5).'; return; }
-  // spend 5
-  await userDocRef.update({ coins: firebase.firestore.FieldValue.increment(-5) });
-  // 50% chance
-  if (Math.random() < 0.5) {
-    await userDocRef.update({ coins: firebase.firestore.FieldValue.increment(10) });
-    document.getElementById('status').innerText = 'You won 10 coins!';
-  } else {
-    document.getElementById('status').innerText = 'No reward this time.';
-  }
-  updateUI();
-});
-
-/* ========== init ========= */
-registerAndLoad();
-
-</script>
+    document.getElementById("earn").addEventListener("click", addCoins);
+    loadBalance();
+  </script>
 </body>
 </html>
