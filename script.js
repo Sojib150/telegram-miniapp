@@ -1,98 +1,105 @@
-// ========== Global User Data ==========
-let coins = 0;
-let username = "";
-let bkashNumber = "";
+// ================= Firebase Setup =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-// Load saved data from localStorage
-window.onload = () => {
-  coins = parseInt(localStorage.getItem("coins")) || 0;
-  username = localStorage.getItem("username") || "";
-  bkashNumber = localStorage.getItem("bkashNumber") || "";
-  updateUI();
+// তোমার Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+  authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+  projectId: "telegram-miniapp-e8cc0",
+  storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+  messagingSenderId: "827930913054",
+  appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
 };
 
-// Save data to localStorage
-function saveData() {
-  localStorage.setItem("coins", coins);
-  localStorage.setItem("username", username);
-  localStorage.setItem("bkashNumber", bkashNumber);
-}
+// Firebase initialize
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// Update coin UI
-function updateUI() {
-  const coinElement = document.getElementById("coinBalance");
-  if (coinElement) coinElement.innerText = coins;
-}
+// ================= User System =================
+let currentUser = null;
+let coins = 0;
 
-// ========== Ads System ==========
-function showAd(adId) {
-  const adContainer = document.getElementById("adContainer");
-  adContainer.innerHTML = "";
+// লগইন
+signInAnonymously(auth)
+  .then(() => {
+    console.log("✅ Logged in anonymously");
+  })
+  .catch((error) => {
+    console.error("❌ Login error:", error);
+  });
 
-  // Example Adsterra Ad
-  if (adId === 1) {
-    adContainer.innerHTML = `
-      <script type="text/javascript">
-        atOptions = {
-          'key' : 'eda134a8fa75db6902f36583f99bde3f',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script type="text/javascript" src="//www.highperformanceformat.com/eda134a8fa75db6902f36583f99bde3f/invoke.js"></script>
-    `;
-  }
+// ইউজার লগইন হলে লিসেন
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    console.log("👉 User ID:", user.uid);
 
-  // Start timer
-  let timeLeft = 15;
-  const timer = document.getElementById("timer");
-  timer.innerText = `⏳ Please wait ${timeLeft}s`;
+    // ডাটাবেজে চেক করো ইউজার আছে কিনা
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
 
-  let countdown = setInterval(() => {
-    timeLeft--;
-    timer.innerText = `⏳ Please wait ${timeLeft}s`;
-    if (timeLeft <= 0) {
-      clearInterval(countdown);
-      coins += 10; // ১০ কয়েন প্রতি এড
-      saveData();
-      updateUI();
-      timer.innerText = "✅ Coins added!";
+    if (snap.exists()) {
+      coins = snap.data().coins || 0;
+    } else {
+      await setDoc(userRef, { coins: 0, name: "Anonymous" });
+      coins = 0;
     }
-  }, 1000);
-}
 
-// ========== Game Reward ==========
+    updateUI();
+  }
+});
+
+// ================= Game System =================
 function playGame() {
-  alert("🎮 Game finished!");
-  coins += 5; // প্রতিবার গেম শেষে ৫ কয়েন
-  saveData();
+  let reward = Math.floor(Math.random() * 50) + 10; // 10-60 কয়েন
+  coins += reward;
+  saveCoins();
+  alert("🎉 You earned " + reward + " coins!");
   updateUI();
 }
 
-// ========== Withdraw ==========
-function withdrawRequest() {
-  username = document.getElementById("username").value;
-  bkashNumber = document.getElementById("bkashNumber").value;
-
+// ================= Withdraw System =================
+async function withdrawBkash(number) {
   if (coins < 1000) {
-    alert("❌ Minimum 1000 coins required!");
+    alert("❌ Minimum 1000 coins needed to withdraw.");
     return;
   }
 
-  if (!username || !bkashNumber) {
-    alert("❌ Please enter your name & Bkash number!");
-    return;
-  }
+  await updateDoc(doc(db, "users", currentUser.uid), {
+    withdrawRequest: {
+      number: number,
+      amount: Math.floor(coins / 10) * 10, // প্রতি ১০ কয়েনে ১ টাকা
+      status: "pending",
+      date: new Date().toISOString(),
+    }
+  });
 
-  alert(`✅ Withdraw request sent!\nName: ${username}\nBkash: ${bkashNumber}\nCoins: ${coins}`);
-  saveData();
+  alert("✅ Withdraw request sent!");
 }
 
-// ========== Profile ==========
-function loadProfile() {
-  document.getElementById("profileName").innerText = username || "Not set";
-  document.getElementById("profileBkash").innerText = bkashNumber || "Not set";
-  document.getElementById("profileCoins").innerText = coins;
+// ================= Profile Update =================
+async function updateProfile(name) {
+  await updateDoc(doc(db, "users", currentUser.uid), {
+    name: name
+  });
+  alert("✅ Profile updated!");
 }
+
+// ================= Save Coins =================
+async function saveCoins() {
+  if (!currentUser) return;
+  await updateDoc(doc(db, "users", currentUser.uid), { coins: coins });
+}
+
+// ================= UI Update =================
+function updateUI() {
+  document.getElementById("coinCount").innerText = coins;
+}
+
+// ================= Expose Functions =================
+window.playGame = playGame;
+window.withdrawBkash = withdrawBkash;
+window.updateProfile = updateProfile;
