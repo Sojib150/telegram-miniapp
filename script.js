@@ -1,71 +1,36 @@
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-  authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-  projectId: "telegram-miniapp-e8cc0",
-  storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-  messagingSenderId: "827930913054",
-  appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-};
+let coins = 0;
 
-// Init Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Telegram WebApp
-const tg = window.Telegram.WebApp;
-const user = tg.initDataUnsafe?.user;
-
-// নতুন ইউজার হলে সেভ করো
-async function saveUserData() {
-  if (!user) return;
-
-  const userRef = db.collection("users").doc(user.id.toString());
-  const doc = await userRef.get();
-
-  if (!doc.exists) {
-    await userRef.set({
-      name: user.first_name,
-      telegramId: user.id,
-      coins: 0,
-      createdAt: new Date()
-    });
-  }
+// পেজ পরিবর্তন ফাংশন
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
 }
 
-// কয়েন বাড়ানো
-async function addCoins(amount) {
-  if (!user) return;
-
-  const userRef = db.collection("users").doc(user.id.toString());
-  await userRef.update({
-    coins: firebase.firestore.FieldValue.increment(amount)
-  });
-
-  loadProfile();
-}
-
-// প্রোফাইল লোড করা
-async function loadProfile() {
-  if (!user) return;
-
-  const userRef = db.collection("users").doc(user.id.toString());
-  const doc = await userRef.get();
-
-  if (doc.exists) {
-    const data = doc.data();
-    document.getElementById("profileName").innerText = "👤 নাম: " + data.name;
-    document.getElementById("profileId").innerText = "🆔 আইডি: " + data.telegramId;
-    document.getElementById("profileCoins").innerText = "💰 কয়েন: " + data.coins;
-  }
-}
-
-// এড বাটনে ক্লিক করলে কয়েন যোগ হবে
-document.getElementById("watchAd").addEventListener("click", () => {
-  // এখানে চাইলে এড নেটওয়ার্ক যুক্ত করো (Adsterra, Google ইত্যাদি)
-  alert("🎥 Ad Watched! You earned 10 coins.");
-  addCoins(10);
+// কয়েন যোগ করা
+document.getElementById("watchAdBtn").addEventListener("click", () => {
+  // এখানে তোমার Adsterra কোড বসাতে হবে
+  alert("🎬 বিজ্ঞাপন চলছে... (ডেমো)");
+  setTimeout(() => {
+    coins += 10;
+    document.getElementById("coin-balance").innerText = coins;
+    alert("✅ 10 কয়েন যোগ হয়েছে!");
+  }, 5000); // 5 সেকেন্ড পর কয়েন যোগ হবে
 });
 
-// প্রথমবার লোড হলে সেভ + প্রোফাইল লোড
-saveUserData().then(loadProfile);
+// Withdraw ফর্ম সাবমিট
+document.getElementById("withdraw-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const number = document.getElementById("bkash-number").value;
+  const name = document.getElementById("user-name").value;
+  if (coins >= 1000) {
+    alert(`✅ উইথড্র রিকোয়েস্ট পাঠানো হলো!\nনাম: ${name}\nবিকাশ: ${number}\nপরিমাণ: 100 টাকা`);
+    coins -= 1000;
+    document.getElementById("coin-balance").innerText = coins;
+  } else {
+    alert("⚠️ ন্যূনতম 1000 কয়েন লাগবে উইথড্র করার জন্য।");
+  }
+});
+
+// প্রোফাইল ডাটা (টেলিগ্রাম থেকে আসলে এখানে দেখাবে)
+document.getElementById("profile-name").innerText = "Demo User";
+document.getElementById("profile-id").innerText = "@demo_id";
