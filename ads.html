@@ -2,34 +2,91 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ad দেখুন</title>
+  <title>Ads - Earn Coins</title>
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="container">
-    <h2>📺 এড দেখুন ও কয়েন সংগ্রহ করুন</h2>
-    <p>এড শেষ হওয়া পর্যন্ত অপেক্ষা করুন (১৫ সেকেন্ড)...</p>
+  <h1>🎁 এড দেখে কয়েন জমাও</h1>
 
-    <!-- এখানে Adsterra এড -->
-    <div class="ad-box">
-      <script type="text/javascript">
-        atOptions = {
-          'key' : 'eda134a8fa75db6902f36583f99bde3f',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script type="text/javascript" src="//www.highperformanceformat.com/eda134a8fa75db6902f36583f99bde3f/invoke.js"></script>
-    </div>
-
-    <p id="timer">⏳ 15 সেকেন্ড বাকি...</p>
-    <button id="collectBtn" disabled>✅ কয়েন সংগ্রহ করুন</button>
-    <br><br>
-    <a href="index.html" class="btn">🏠 হোমে ফিরে যান</a>
+  <div id="ad-section">
+    <!-- এখানে এড লোড হবে -->
+    <iframe id="ad-frame" src="https://www.profitabledisplaynetwork.com/a7/79/35/a7793522c5f18d71ee839b6a1b35e1eb.js" 
+            style="width:100%; height:250px; border:none;"></iframe>
   </div>
+
+  <div id="timer-box" style="display:none;">
+    ⏳ এড শেষ হতে <span id="countdown">15</span> সেকেন্ড বাকি...
+  </div>
+
+  <button id="claimBtn" disabled>✅ কয়েন Claim করো</button>
+
+  <p id="status"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+
+    // Firebase init
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const claimBtn = document.getElementById("claimBtn");
+    const countdownEl = document.getElementById("countdown");
+    const timerBox = document.getElementById("timer-box");
+    const statusEl = document.getElementById("status");
+
+    let timer;
+
+    // এডে ক্লিক করলে টাইমার শুরু
+    document.getElementById("ad-frame").addEventListener("click", () => {
+      let timeLeft = 15;
+      timerBox.style.display = "block";
+      claimBtn.disabled = true;
+      countdownEl.textContent = timeLeft;
+
+      timer = setInterval(() => {
+        timeLeft--;
+        countdownEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          claimBtn.disabled = false;
+          statusEl.textContent = "🎉 Claim করতে পারবেন এখন!";
+        }
+      }, 1000);
+    });
+
+    // Claim করলে কয়েন Firebase এ যোগ হবে
+    claimBtn.addEventListener("click", async () => {
+      const username = localStorage.getItem("username");
+      if (!username) {
+        alert("⚠️ আগে লগইন করুন!");
+        return;
+      }
+
+      const userRef = doc(db, "users", username);
+      const snap = await getDoc(userRef);
+
+      if (!snap.exists()) {
+        await setDoc(userRef, { username, coins: 0 });
+      }
+
+      await updateDoc(userRef, {
+        coins: increment(10) // প্রতিবার 10 কয়েন যোগ হবে
+      });
+
+      statusEl.textContent = "✅ 10 কয়েন যোগ হয়েছে!";
+      claimBtn.disabled = true;
+    });
+  </script>
 </body>
 </html>
