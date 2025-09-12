@@ -2,21 +2,22 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>রিওয়ার্ড অ্যাপ</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Coin App</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>💰 রিওয়ার্ড সিস্টেম অ্যাপ</h1>
-    <p>স্বাগতম! নিচে থেকে একটি অপশন বেছে নিন:</p>
+  <h1>🔥 টেলিগ্রাম কয়েন অ্যাপ</h1>
 
-    <div class="menu">
-      <a href="ads.html" class="btn">📺 এড দেখুন</a>
-      <a href="game.html" class="btn">🎮 গেম খেলুন</a>
-      <a href="withdraw.html" class="btn">💵 টাকা তুলুন</a>
-      <a href="profile.html" class="btn">👤 প্রোফাইল</a>
-    </div>
+  <div id="profile">
+    <h2>👤 প্রোফাইল</h2>
+    <p id="profileName">লোড হচ্ছে...</p>
+    <p id="profileId"></p>
+    <p id="profileCoins"></p>
   </div>
+
+  <button id="watchAd">🎥 Watch Ad & Earn +10 Coins</button>
+
+  <script src="script.js"></script>
 </body>
 </html>
