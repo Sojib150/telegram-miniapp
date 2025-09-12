@@ -1,112 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <title>Telegram MiniApp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f4f4f9;
-      padding: 20px;
-    }
-    h2 {
-      color: #333;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 15px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    #balance-box {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      background: white;
-      border-radius: 8px;
-      display: inline-block;
-    }
-    #ad-container {
-      margin-top: 30px;
-    }
-  </style>
+  <title>EarnApp MiniApp</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>🔥 Telegram Mini App</h2>
-  <p id="welcome">Welcome! Earn coins by clicking the button 👇</p>
+  <div class="app">
+    <h2>💰 EarnApp MiniApp</h2>
+    <p id="welcome">স্বাগতম! এখানে অ্যাড দেখে কয়েন আয় করুন 🎉</p>
 
-  <button id="earn">Earn 10 Coins</button>
+    <!-- Balance -->
+    <div class="balance-box">
+      <h3>আমার কয়েন: <span id="balance">0</span> 🪙</h3>
+    </div>
 
-  <div id="balance-box">
-    <p>Balance: <span id="balance">0</span> coins</p>
+    <!-- Watch Ads -->
+    <button id="watchAdBtn">📺 অ্যাড দেখুন (১৫ সেকেন্ড)</button>
+    <div id="adContainer" class="hidden"></div>
+    <p id="timer"></p>
+
+    <!-- Play Game -->
+    <button id="playGameBtn">🎮 গেম খেলুন</button>
+
+    <!-- Withdraw -->
+    <h3>💵 উইথড্র</h3>
+    <form id="withdrawForm">
+      <input type="text" id="name" placeholder="আপনার নাম লিখুন" required>
+      <input type="text" id="bkash" placeholder="বিকাশ নাম্বার লিখুন" required>
+      <button type="submit">✅ উইথড্র রিকোয়েস্ট</button>
+    </form>
+
+    <p id="message"></p>
   </div>
 
-  <!-- 🔹 Adsterra Example -->
-  <div id="ad-container">
-    <h4>Sponsored</h4>
-    <script type="text/javascript">
-      atOptions = {
-        'key' : 'eda134a8fa75db6902f36583f99bde3f',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-      };
-    </script>
-    <script type="text/javascript" src="//www.highperformanceformat.com/eda134a8fa75db6902f36583f99bde3f/invoke.js"></script>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // ⚡ Telegram WebApp থেকে ইউজার আইডি আনা (না পারলে demoUser)
-    let userId = "demoUser";
-    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user?.id) {
-      userId = Telegram.WebApp.initDataUnsafe.user.id.toString();
-    }
-
-    async function loadBalance() {
-      const ref = doc(db, "users", userId);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        document.getElementById("balance").textContent = snap.data().balance;
-      } else {
-        await setDoc(ref, { balance: 0 });
-        document.getElementById("balance").textContent = 0;
-      }
-    }
-
-    async function addCoins() {
-      const ref = doc(db, "users", userId);
-      await updateDoc(ref, { balance: increment(10) });
-      loadBalance();
-    }
-
-    document.getElementById("earn").addEventListener("click", addCoins);
-    loadBalance();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
