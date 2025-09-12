@@ -1,284 +1,114 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>🎮 Banana Pop — গেম</title>
-  <style>
-    :root{--tg-blue:#229ED9;--card:#fff;--bg:#f6f8fb}
-    body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#111}
-    .wrap{max-width:420px;margin:18px auto;padding:12px}
-    header{display:flex;align-items:center;gap:12px}
-    header h1{font-size:18px;margin:0}
-    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(10,10,10,0.06)}
-    #gameArea{position:relative;width:100%;height:420px;border-radius:10px;background:linear-gradient(180deg,#e8f7ff, #f7fff7);overflow:hidden;border:1px solid #e6eef6;margin-top:12px}
-    .hud{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-    .stat{background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.04);font-weight:600}
-    #controls{display:flex;gap:8px;margin-top:12px}
-    .btn{flex:1;padding:10px;border-radius:8px;border:0;background:var(--tg-blue);color:#fff;font-weight:700;cursor:pointer}
-    .btn.ghost{background:#fff;color:var(--tg-blue);border:1px solid #cfeafb}
-    .banana{position:absolute;width:56px;height:56px;background:url('https://i.imgur.com/7k4K3qN.png') center/contain no-repeat;cursor:pointer;user-select:none}
-    .pop{position:absolute;width:56px;height:56px;background:url('https://i.imgur.com/9p2S9sI.png') center/contain no-repeat;pointer-events:none}
-    #resultBox{display:none;margin-top:12px;text-align:center}
-    #adContainer{margin-top:12px;text-align:center}
-    #claimBtn{margin-top:10px;padding:10px 14px;border-radius:8px;border:0;background:#28a745;color:#fff;font-weight:700;cursor:pointer}
-    small.note{display:block;color:#666;margin-top:8px;text-align:center}
-  </style>
-  <!-- Telegram WebApp SDK (auto login only when opened via Telegram) -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banana Smash Game</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #cceeff;
+    text-align: center;
+  }
+  #score {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  #gameCanvas {
+    border: 2px solid #000;
+    background: #a3dfff;
+    display: block;
+    margin: 0 auto;
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>🎮 Banana Pop</h1>
-    </header>
 
-    <div class="card">
-      <div class="hud">
-        <div class="stat">⏱ Time: <span id="timeLeft">20</span>s</div>
-        <div class="stat">🍌 Score: <span id="score">0</span></div>
-        <div class="stat">💰 Reward: <span id="rewardPreview">0</span></div>
-      </div>
+<div id="score">কয়েন: 0</div>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
 
-      <div id="gameArea" aria-label="game area"></div>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  // Telegram WebApp init
+  if (window.Telegram && Telegram.WebApp) {
+    Telegram.WebApp.ready();
+  }
 
-      <div id="controls">
-        <button id="startBtn" class="btn">▶ Start Game</button>
-        <button id="stopBtn" class="btn ghost" disabled>■ Stop</button>
-      </div>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
 
-      <div id="resultBox">
-        <h3 id="resultText"></h3>
-        <div id="adContainer"></div>
-        <p class="note">অ্যাড শেষ হলে "Claim Reward" চালু হবে (১৫ সেকেন্ড অপেক্ষা)</p>
-        <button id="claimBtn" disabled>Claim Reward</button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
-  // ================== Firebase imports ==================
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-  // === Firebase config (তোমার) ===
-  const firebaseConfig = {
-    apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-    authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-    projectId: "telegram-miniapp-e8cc0",
-    storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-    messagingSenderId: "827930913054",
-    appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // ============ Game variables ============
-  const DURATION = 20;          // game seconds
-  const SPAWN_INTERVAL = 700;   // ms between new bananas
-  const FALL_SPEED_MIN = 2500;  // ms time to fall (min)
-  const FALL_SPEED_MAX = 4500;  // ms time to fall (max)
-  const BASE_REWARD = 5;        // base coins
-  const MULTIPLIER = 3;         // coins per popped banana
-  const MAX_REWARD = 300;       // cap
-
-  const area = document.getElementById('gameArea');
-  const timeEl = document.getElementById('timeLeft');
-  const scoreEl = document.getElementById('score');
-  const rewardPreviewEl = document.getElementById('rewardPreview');
-  const startBtn = document.getElementById('startBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const resultBox = document.getElementById('resultBox');
-  const resultText = document.getElementById('resultText');
-  const adContainer = document.getElementById('adContainer');
-  const claimBtn = document.getElementById('claimBtn');
-
-  let spawnTimer = null;
-  let gameTimer = null;
-  let gameTimeLeft = DURATION;
+  let bananas = [];
   let score = 0;
-  let bananas = new Set();
-  let gameRunning = false;
-  let claimReady = false;
 
-  // Telegram user (try WebApp then fallback to local)
-  let telegramUser = null;
-  try {
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      telegramUser = tg.initDataUnsafe?.user || null;
-    }
-  } catch(e){ console.warn("tg not available", e); }
-  // fallback guest id
-  const getUserId = () => {
-    if (telegramUser && telegramUser.id) return String(telegramUser.id);
-    let g = localStorage.getItem('guest_user');
-    if (!g) { g = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); localStorage.setItem('guest_user', g); }
-    return g;
+  // কলার ছবি
+  const bananaImg = new Image();
+  bananaImg.src = "https://i.ibb.co/mJ0rjwP/banana.png";
+
+  bananaImg.onload = () => {
+    console.log("Banana image loaded!");
+  };
+  bananaImg.onerror = () => {
+    console.error("Failed to load banana image.");
   };
 
-  // utility: random int
-  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-
-  // spawn banana
-  function spawnBanana(){
-    const b = document.createElement('div');
-    b.className = 'banana';
-    // random x within area
-    const areaW = area.clientWidth;
-    const x = Math.max(6, Math.floor(Math.random() * (areaW - 60)));
-    b.style.left = x + 'px';
-    b.style.top = '-70px';
-    area.appendChild(b);
-    bananas.add(b);
-
-    // fall animation using JS (transition)
-    const fallTime = randInt(FALL_SPEED_MIN, FALL_SPEED_MAX);
-    b.style.transition = `transform ${fallTime}ms linear`;
-    requestAnimationFrame(()=> {
-      b.style.transform = `translateY(${area.clientHeight + 80}px)`; // fall beyond area
-    });
-
-    // remove after fallTime + small buffer
-    const removeTimer = setTimeout(()=> {
-      if (bananas.has(b)) {
-        bananas.delete(b);
-        b.remove();
-      }
-      clearTimeout(removeTimer);
-    }, fallTime + 200);
-
-    // click to pop
-    b.addEventListener('click', (e)=> {
-      e.stopPropagation();
-      if (!gameRunning) return;
-      // add pop visual
-      const pop = document.createElement('div');
-      pop.className = 'pop';
-      pop.style.left = b.style.left;
-      pop.style.top = b.style.top;
-      area.appendChild(pop);
-      setTimeout(()=> pop.remove(), 500);
-
-      // increment score and remove banana
-      score++;
-      scoreEl.textContent = score;
-      bananas.delete(b);
-      b.remove();
-      updateRewardPreview();
-    });
+  // র‍্যান্ডম কলা তৈরি
+  function createBanana() {
+    const x = Math.random() * (canvas.width - 50);
+    bananas.push({ x, y: -50, w: 40, h: 40 });
   }
 
-  function updateRewardPreview(){
-    const reward = Math.min(MAX_REWARD, BASE_REWARD + score * MULTIPLIER);
-    rewardPreviewEl.textContent = reward;
+  // কলা আঁকা
+  function drawBananas() {
+    bananas.forEach(b => ctx.drawImage(bananaImg, b.x, b.y, b.w, b.h));
   }
 
-  function startGame(){
-    if (gameRunning) return;
-    // reset
-    gameRunning = true;
-    score = 0;
-    gameTimeLeft = DURATION;
-    scoreEl.textContent = '0';
-    timeEl.textContent = String(gameTimeLeft);
-    updateRewardPreview();
-    resultBox.style.display = 'none';
-    adContainer.innerHTML = '';
-    claimBtn.disabled = true;
-    claimReady = false;
-    // spawn loop
-    spawnTimer = setInterval(spawnBanana, SPAWN_INTERVAL);
-    // game timer
-    gameTimer = setInterval(()=> {
-      gameTimeLeft--;
-      timeEl.textContent = String(gameTimeLeft);
-      if (gameTimeLeft <= 0) {
-        stopGame();
-      }
-    }, 1000);
-    startBtn.disabled = true;
-    stopBtn.disabled = false;
+  // কলা নামানো
+  function updateBananas() {
+    bananas.forEach(b => b.y += 3);
+    bananas = bananas.filter(b => b.y < canvas.height + 50);
   }
 
-  function stopGame(){
-    if (!gameRunning) return;
-    gameRunning = false;
-    clearInterval(spawnTimer);
-    clearInterval(gameTimer);
-    // remove remaining bananas
-    bananas.forEach(b=> b.remove());
-    bananas.clear();
-    // show results + ad
-    const reward = Math.min(MAX_REWARD, BASE_REWARD + score * MULTIPLIER);
-    resultText.innerHTML = `🏁 গেম শেষ! আপনার স্কোর: <strong>${score}</strong><br>প্রত্যাশিত রিওয়ার্ড: <strong>${reward}</strong> কয়েন`;
-    resultBox.style.display = 'block';
-    // insert ad (native/banner/social as you prefer)
-    // --- Adsterra native example (your code) ---
-    adContainer.innerHTML = `<script async="async" data-cfasync="false" src="//pl27590817.revenuecpmgate.com/15bb6fd989846930069557e9a22f454c/invoke.js"></script>
-      <div id="container-15bb6fd989846930069557e9a22f454c"></div>`;
-    // start 15s timer for claim
-    let wait = 15;
-    claimBtn.disabled = true;
-    claimBtn.textContent = `Claim (wait ${wait}s)`;
-    const w = setInterval(()=> {
-      wait--;
-      claimBtn.textContent = `Claim (wait ${wait}s)`;
-      if (wait<=0){
-        clearInterval(w);
-        claimBtn.disabled = false;
-        claimBtn.textContent = 'Claim Reward';
-        claimReady = true;
+  // স্কোর বাড়ানো
+  function smashBanana(x, y) {
+    for (let i = 0; i < bananas.length; i++) {
+      let b = bananas[i];
+      if (x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h) {
+        bananas.splice(i, 1);
+        score += 10;
+        document.getElementById("score").innerText = "কয়েন: " + score;
+        break;
       }
-    },1000);
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-  }
-
-  // claim reward -> write to Firestore
-  claimBtn.addEventListener('click', async ()=>{
-    if (!claimReady) return;
-    claimBtn.disabled = true;
-    claimBtn.textContent = 'Claiming...';
-    const reward = Math.min(MAX_REWARD, BASE_REWARD + score * MULTIPLIER);
-    const userId = getUserId();
-    try {
-      const userRef = doc(db, 'users', userId);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()){
-        // create user doc (guest or telegram)
-        await setDoc(userRef, {
-          name: (telegramUser && (telegramUser.first_name || telegramUser.username)) || 'Guest',
-          telegramId: (telegramUser && telegramUser.id) || null,
-          coins: reward
-        });
-      } else {
-        await updateDoc(userRef, {
-          coins: increment(reward)
-        });
-      }
-      resultText.innerHTML += `<br/><strong style="color:green">✅ ${reward} কয়েন যোগ হয়েছে!</strong>`;
-      claimBtn.textContent = 'Claimed';
-    } catch(err){
-      console.error(err);
-      resultText.innerHTML += `<br/><strong style="color:red">Error: Could not credit coins.</strong>`;
-      claimBtn.disabled = false;
-      claimBtn.textContent = 'Claim Reward';
     }
+  }
+
+  // টাচ/ক্লিক ইভেন্ট
+  function handleClick(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+    smashBanana(x, y);
+  }
+
+  canvas.addEventListener("click", handleClick);
+  canvas.addEventListener("touchstart", e => {
+    e.preventDefault();
+    handleClick(e);
   });
 
-  // stop button
-  stopBtn.addEventListener('click', ()=>{
-    if (gameRunning) stopGame();
-  });
+  // কলা স্পন
+  setInterval(createBanana, 1000);
 
-  // start button
-  startBtn.addEventListener('click', ()=> startGame());
+  // গেম লুপ
+  function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBananas();
+    updateBananas();
+    requestAnimationFrame(gameLoop);
+  }
 
-  // initial UI
-  updateRewardPreview();
-  </script>
+  gameLoop();
+</script>
 </body>
 </html>
