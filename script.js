@@ -1,30 +1,52 @@
-let coins = localStorage.getItem("coins") ? parseInt(localStorage.getItem("coins")) : 0;
+// ====== Game Page ======
+if (document.getElementById("startGame")) {
+  let gameArea = document.getElementById("gameArea");
+  let timeLeft = 10;
+  let score = 0;
+  let gameTimer;
 
-function saveCoins() {
-  localStorage.setItem("coins", coins);
-}
+  document.getElementById("startGame").addEventListener("click", () => {
+    score = 0;
+    timeLeft = 10;
+    document.getElementById("score").textContent = score;
+    document.getElementById("timeLeft").textContent = timeLeft;
+    gameArea.innerHTML = "";
+    document.getElementById("adSection").style.display = "none";
 
-// ====== Ads Page Timer ======
-if (document.getElementById("collectBtn")) {
-  let timeLeft = 15;
-  let timerEl = document.getElementById("timer");
-  let collectBtn = document.getElementById("collectBtn");
+    gameTimer = setInterval(() => {
+      timeLeft--;
+      document.getElementById("timeLeft").textContent = timeLeft;
 
-  let countdown = setInterval(() => {
-    timeLeft--;
-    timerEl.textContent = `⏳ ${timeLeft} সেকেন্ড বাকি...`;
+      // বাবল তৈরি
+      let bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      bubble.style.left = Math.random() * 250 + "px";
+      bubble.style.top = Math.random() * 250 + "px";
+      bubble.addEventListener("click", () => {
+        score++;
+        document.getElementById("score").textContent = score;
+        bubble.remove();
+      });
+      gameArea.appendChild(bubble);
 
-    if (timeLeft <= 0) {
-      clearInterval(countdown);
-      timerEl.textContent = "✅ সময় শেষ! এখন কয়েন সংগ্রহ করুন।";
-      collectBtn.disabled = false;
-    }
-  }, 1000);
+      if (timeLeft <= 0) {
+        clearInterval(gameTimer);
+        gameArea.innerHTML = "<p>⏹️ গেম শেষ!</p>";
+        document.getElementById("adSection").style.display = "block";
 
-  collectBtn.addEventListener("click", () => {
-    coins += 10; // প্রতিবার এড দেখলে 10 কয়েন
-    saveCoins();
-    alert("🎉 অভিনন্দন! ১০ কয়েন যোগ হয়েছে। আপনার মোট কয়েন: " + coins);
-    collectBtn.disabled = true;
+        // ১৫ সেকেন্ড পর কয়েন সংগ্রহ বাটন চালু হবে
+        let rewardBtn = document.getElementById("collectGameReward");
+        setTimeout(() => {
+          rewardBtn.disabled = false;
+        }, 15000);
+
+        rewardBtn.addEventListener("click", () => {
+          coins += 20; // প্রতিবার গেম শেষ হলে 20 কয়েন
+          saveCoins();
+          alert("🎉 গেম পুরস্কার! ২০ কয়েন যোগ হয়েছে। আপনার মোট কয়েন: " + coins);
+          rewardBtn.disabled = true;
+        });
+      }
+    }, 1000);
   });
 }
