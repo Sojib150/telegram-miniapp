@@ -5,110 +5,139 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Banana Smash Game</title>
 <style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
-    background: #cceeff;
-    text-align: center;
-  }
-  #score {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 10px 0;
-  }
-  #gameCanvas {
-    border: 2px solid #000;
-    background: #a3dfff;
-    display: block;
-    margin: 0 auto;
-  }
+  body { margin: 0; font-family: sans-serif; background: #cceeff; text-align: center; }
+  #score { font-size: 24px; font-weight: bold; margin: 10px 0; }
+  #gameCanvas { border: 2px solid #000; background: #a3dfff; display: block; margin: 0 auto; }
+  #ad { margin: 10px auto; }
 </style>
 </head>
 <body>
 
 <div id="score">কয়েন: 0</div>
 <canvas id="gameCanvas" width="400" height="600"></canvas>
+<div id="ad"></div>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-  // Telegram WebApp init
-  if (window.Telegram && Telegram.WebApp) {
-    Telegram.WebApp.ready();
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+  authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+  projectId: "telegram-miniapp-e8cc0",
+  storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+  messagingSenderId: "827930913054",
+  appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Telegram WebApp init
+Telegram.WebApp.ready();
+const userId = Telegram.WebApp.initDataUnsafe.user.id;
+const username = Telegram.WebApp.initDataUnsafe.user.username || "Player";
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let bananas = [];
+let score = 0;
+
+// Load user score from Firestore
+async function loadScore() {
+  const userRef = doc(db, "users", String(userId));
+  const userSnap = await getDoc(userRef);
+  if(userSnap.exists()) {
+    score = userSnap.data().score;
+    document.getElementById("score").innerText = "কয়েন: " + score;
+  } else {
+    await setDoc(userRef, { username, score: 0 });
   }
+}
 
-  const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
+// Update score to Firestore
+async function updateScoreOnServer() {
+  const userRef = doc(db, "users", String(userId));
+  await setDoc(userRef, { username, score }, { merge: true });
+}
 
-  let bananas = [];
-  let score = 0;
-
-  // কলার ছবি
-  const bananaImg = new Image();
-  bananaImg.src = "https://i.ibb.co/mJ0rjwP/banana.png";
-
-  bananaImg.onload = () => {
-    console.log("Banana image loaded!");
-  };
-  bananaImg.onerror = () => {
-    console.error("Failed to load banana image.");
-  };
-
-  // র‍্যান্ডম কলা তৈরি
-  function createBanana() {
-    const x = Math.random() * (canvas.width - 50);
-    bananas.push({ x, y: -50, w: 40, h: 40 });
+// Load ad from Firestore
+async function loadAds() {
+  const adRef = doc(db, "ads", "ad1"); // Replace "ad1" with your ad doc id
+  const adSnap = await getDoc(adRef);
+  if(adSnap.exists()) {
+    const ad = adSnap.data();
+    document.getElementById("ad").innerHTML = `
+      <a href="${ad.ad_url}" target="_blank">
+        <img src="${ad.ad_image}" style="width:300px;">
+      </a>`;
   }
+}
 
-  // কলা আঁকা
-  function drawBananas() {
-    bananas.forEach(b => ctx.drawImage(bananaImg, b.x, b.y, b.w, b.h));
-  }
+// Call initial functions
+loadScore();
+loadAds();
 
-  // কলা নামানো
-  function updateBananas() {
-    bananas.forEach(b => b.y += 3);
-    bananas = bananas.filter(b => b.y < canvas.height + 50);
-  }
+// Banana image
+const bananaImg = new Image();
+bananaImg.src = "https://i.ibb.co/mJ0rjwP/banana.png";
 
-  // স্কোর বাড়ানো
-  function smashBanana(x, y) {
-    for (let i = 0; i < bananas.length; i++) {
-      let b = bananas[i];
-      if (x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h) {
-        bananas.splice(i, 1);
-        score += 10;
-        document.getElementById("score").innerText = "কয়েন: " + score;
-        break;
-      }
+// Create random banana
+function createBanana() {
+  const x = Math.random() * (canvas.width - 50);
+  bananas.push({ x, y: -50, w: 40, h: 40 });
+}
+
+// Draw bananas
+function drawBananas() {
+  bananas.forEach(b => ctx.drawImage(bananaImg, b.x, b.y, b.w, b.h));
+}
+
+// Update bananas
+function updateBananas() {
+  bananas.forEach(b => b.y += 3);
+  bananas = bananas.filter(b => b.y < canvas.height + 50);
+}
+
+// Smash banana & update score
+function smashBanana(x, y) {
+  for(let i=0; i<bananas.length; i++) {
+    let b = bananas[i];
+    if(x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h) {
+      bananas.splice(i,1);
+      score += 10;
+      document.getElementById("score").innerText = "কয়েন: " + score;
+      updateScoreOnServer();
+      break;
     }
   }
+}
 
-  // টাচ/ক্লিক ইভেন্ট
-  function handleClick(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
-    smashBanana(x, y);
-  }
+// Handle click/touch
+function handleClick(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX || e.touches[0].clientX) - rect.left;
+  const y = (e.clientY || e.touches[0].clientY) - rect.top;
+  smashBanana(x, y);
+}
 
-  canvas.addEventListener("click", handleClick);
-  canvas.addEventListener("touchstart", e => {
-    e.preventDefault();
-    handleClick(e);
-  });
+canvas.addEventListener("click", handleClick);
+canvas.addEventListener("touchstart", e => { e.preventDefault(); handleClick(e); });
 
-  // কলা স্পন
-  setInterval(createBanana, 1000);
+// Spawn bananas every second
+setInterval(createBanana, 1000);
 
-  // গেম লুপ
-  function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBananas();
-    updateBananas();
-    requestAnimationFrame(gameLoop);
-  }
+// Game loop
+function gameLoop() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBananas();
+  updateBananas();
+  requestAnimationFrame(gameLoop);
+}
 
-  gameLoop();
+gameLoop();
 </script>
 </body>
 </html>
