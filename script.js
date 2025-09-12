@@ -1,52 +1,98 @@
-// ====== Game Page ======
-if (document.getElementById("startGame")) {
-  let gameArea = document.getElementById("gameArea");
-  let timeLeft = 10;
-  let score = 0;
-  let gameTimer;
+// ========== Global User Data ==========
+let coins = 0;
+let username = "";
+let bkashNumber = "";
 
-  document.getElementById("startGame").addEventListener("click", () => {
-    score = 0;
-    timeLeft = 10;
-    document.getElementById("score").textContent = score;
-    document.getElementById("timeLeft").textContent = timeLeft;
-    gameArea.innerHTML = "";
-    document.getElementById("adSection").style.display = "none";
+// Load saved data from localStorage
+window.onload = () => {
+  coins = parseInt(localStorage.getItem("coins")) || 0;
+  username = localStorage.getItem("username") || "";
+  bkashNumber = localStorage.getItem("bkashNumber") || "";
+  updateUI();
+};
 
-    gameTimer = setInterval(() => {
-      timeLeft--;
-      document.getElementById("timeLeft").textContent = timeLeft;
+// Save data to localStorage
+function saveData() {
+  localStorage.setItem("coins", coins);
+  localStorage.setItem("username", username);
+  localStorage.setItem("bkashNumber", bkashNumber);
+}
 
-      // বাবল তৈরি
-      let bubble = document.createElement("div");
-      bubble.classList.add("bubble");
-      bubble.style.left = Math.random() * 250 + "px";
-      bubble.style.top = Math.random() * 250 + "px";
-      bubble.addEventListener("click", () => {
-        score++;
-        document.getElementById("score").textContent = score;
-        bubble.remove();
-      });
-      gameArea.appendChild(bubble);
+// Update coin UI
+function updateUI() {
+  const coinElement = document.getElementById("coinBalance");
+  if (coinElement) coinElement.innerText = coins;
+}
 
-      if (timeLeft <= 0) {
-        clearInterval(gameTimer);
-        gameArea.innerHTML = "<p>⏹️ গেম শেষ!</p>";
-        document.getElementById("adSection").style.display = "block";
+// ========== Ads System ==========
+function showAd(adId) {
+  const adContainer = document.getElementById("adContainer");
+  adContainer.innerHTML = "";
 
-        // ১৫ সেকেন্ড পর কয়েন সংগ্রহ বাটন চালু হবে
-        let rewardBtn = document.getElementById("collectGameReward");
-        setTimeout(() => {
-          rewardBtn.disabled = false;
-        }, 15000);
+  // Example Adsterra Ad
+  if (adId === 1) {
+    adContainer.innerHTML = `
+      <script type="text/javascript">
+        atOptions = {
+          'key' : 'eda134a8fa75db6902f36583f99bde3f',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="//www.highperformanceformat.com/eda134a8fa75db6902f36583f99bde3f/invoke.js"></script>
+    `;
+  }
 
-        rewardBtn.addEventListener("click", () => {
-          coins += 20; // প্রতিবার গেম শেষ হলে 20 কয়েন
-          saveCoins();
-          alert("🎉 গেম পুরস্কার! ২০ কয়েন যোগ হয়েছে। আপনার মোট কয়েন: " + coins);
-          rewardBtn.disabled = true;
-        });
-      }
-    }, 1000);
-  });
+  // Start timer
+  let timeLeft = 15;
+  const timer = document.getElementById("timer");
+  timer.innerText = `⏳ Please wait ${timeLeft}s`;
+
+  let countdown = setInterval(() => {
+    timeLeft--;
+    timer.innerText = `⏳ Please wait ${timeLeft}s`;
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      coins += 10; // ১০ কয়েন প্রতি এড
+      saveData();
+      updateUI();
+      timer.innerText = "✅ Coins added!";
+    }
+  }, 1000);
+}
+
+// ========== Game Reward ==========
+function playGame() {
+  alert("🎮 Game finished!");
+  coins += 5; // প্রতিবার গেম শেষে ৫ কয়েন
+  saveData();
+  updateUI();
+}
+
+// ========== Withdraw ==========
+function withdrawRequest() {
+  username = document.getElementById("username").value;
+  bkashNumber = document.getElementById("bkashNumber").value;
+
+  if (coins < 1000) {
+    alert("❌ Minimum 1000 coins required!");
+    return;
+  }
+
+  if (!username || !bkashNumber) {
+    alert("❌ Please enter your name & Bkash number!");
+    return;
+  }
+
+  alert(`✅ Withdraw request sent!\nName: ${username}\nBkash: ${bkashNumber}\nCoins: ${coins}`);
+  saveData();
+}
+
+// ========== Profile ==========
+function loadProfile() {
+  document.getElementById("profileName").innerText = username || "Not set";
+  document.getElementById("profileBkash").innerText = bkashNumber || "Not set";
+  document.getElementById("profileCoins").innerText = coins;
 }
