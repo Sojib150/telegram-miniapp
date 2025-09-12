@@ -1,9 +1,4 @@
-// ================= Firebase Setup =================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-
-// তোমার Firebase Config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
   authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
@@ -13,93 +8,64 @@ const firebaseConfig = {
   appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
 };
 
-// Firebase initialize
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Init Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// ================= User System =================
-let currentUser = null;
-let coins = 0;
+// Telegram WebApp
+const tg = window.Telegram.WebApp;
+const user = tg.initDataUnsafe?.user;
 
-// লগইন
-signInAnonymously(auth)
-  .then(() => {
-    console.log("✅ Logged in anonymously");
-  })
-  .catch((error) => {
-    console.error("❌ Login error:", error);
+// নতুন ইউজার হলে সেভ করো
+async function saveUserData() {
+  if (!user) return;
+
+  const userRef = db.collection("users").doc(user.id.toString());
+  const doc = await userRef.get();
+
+  if (!doc.exists) {
+    await userRef.set({
+      name: user.first_name,
+      telegramId: user.id,
+      coins: 0,
+      createdAt: new Date()
+    });
+  }
+}
+
+// কয়েন বাড়ানো
+async function addCoins(amount) {
+  if (!user) return;
+
+  const userRef = db.collection("users").doc(user.id.toString());
+  await userRef.update({
+    coins: firebase.firestore.FieldValue.increment(amount)
   });
 
-// ইউজার লগইন হলে লিসেন
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    console.log("👉 User ID:", user.uid);
+  loadProfile();
+}
 
-    // ডাটাবেজে চেক করো ইউজার আছে কিনা
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
+// প্রোফাইল লোড করা
+async function loadProfile() {
+  if (!user) return;
 
-    if (snap.exists()) {
-      coins = snap.data().coins || 0;
-    } else {
-      await setDoc(userRef, { coins: 0, name: "Anonymous" });
-      coins = 0;
-    }
+  const userRef = db.collection("users").doc(user.id.toString());
+  const doc = await userRef.get();
 
-    updateUI();
+  if (doc.exists) {
+    const data = doc.data();
+    document.getElementById("profileName").innerText = "👤 নাম: " + data.name;
+    document.getElementById("profileId").innerText = "🆔 আইডি: " + data.telegramId;
+    document.getElementById("profileCoins").innerText = "💰 কয়েন: " + data.coins;
   }
+}
+
+// এড বাটনে ক্লিক করলে কয়েন যোগ হবে
+document.getElementById("watchAd").addEventListener("click", () => {
+  // এখানে চাইলে এড নেটওয়ার্ক যুক্ত করো (Adsterra, Google ইত্যাদি)
+  alert("🎥 Ad Watched! You earned 10 coins.");
+  addCoins(10);
 });
 
-// ================= Game System =================
-function playGame() {
-  let reward = Math.floor(Math.random() * 50) + 10; // 10-60 কয়েন
-  coins += reward;
-  saveCoins();
-  alert("🎉 You earned " + reward + " coins!");
-  updateUI();
-}
-
-// ================= Withdraw System =================
-async function withdrawBkash(number) {
-  if (coins < 1000) {
-    alert("❌ Minimum 1000 coins needed to withdraw.");
-    return;
-  }
-
-  await updateDoc(doc(db, "users", currentUser.uid), {
-    withdrawRequest: {
-      number: number,
-      amount: Math.floor(coins / 10) * 10, // প্রতি ১০ কয়েনে ১ টাকা
-      status: "pending",
-      date: new Date().toISOString(),
-    }
-  });
-
-  alert("✅ Withdraw request sent!");
-}
-
-// ================= Profile Update =================
-async function updateProfile(name) {
-  await updateDoc(doc(db, "users", currentUser.uid), {
-    name: name
-  });
-  alert("✅ Profile updated!");
-}
-
-// ================= Save Coins =================
-async function saveCoins() {
-  if (!currentUser) return;
-  await updateDoc(doc(db, "users", currentUser.uid), { coins: coins });
-}
-
-// ================= UI Update =================
-function updateUI() {
-  document.getElementById("coinCount").innerText = coins;
-}
-
-// ================= Expose Functions =================
-window.playGame = playGame;
-window.withdrawBkash = withdrawBkash;
-window.updateProfile = updateProfile;
+// প্রথমবার লোড হলে সেভ + প্রোফাইল লোড
+saveUserData().then(loadProfile);
