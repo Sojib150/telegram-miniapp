@@ -72,23 +72,57 @@
     <button class="back-btn" onclick="window.location.href='index.html'">⬅️ হোমে যান</button>
   </div>
 
+  <!-- Telegram API -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    // Telegram থেকে ইউজারের তথ্য আনা
+  
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Firebase Import
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // তোমার Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+
+    // Firebase Init
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Telegram থেকে ইউজার ডেটা আনা
     const tg = window.Telegram.WebApp;
     tg.expand();
 
     const user = tg.initDataUnsafe?.user;
 
+    let userId = "guest"; // fallback
     if (user) {
       document.getElementById("name").innerText = user.first_name + " " + (user.last_name || "");
       document.getElementById("username").innerText = "@" + (user.username || "unknown");
       document.getElementById("avatar").src = user.photo_url || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+      userId = user.id; // Telegram user id কে key হিসেবে ব্যবহার
     }
 
-    // কয়েন Firebase / Local থেকে আনতে হবে
-    let balance = localStorage.getItem("coins") || 0;
-    document.getElementById("balance").innerText = balance;
+    // Firebase থেকে কয়েন লোড করা
+    async function loadBalance() {
+      const ref = doc(db, "users", String(userId));
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        document.getElementById("balance").innerText = snap.data().coins || 0;
+      } else {
+        // নতুন ইউজার হলে ডিফল্ট কয়েন 0 সেট করা হবে
+        await setDoc(ref, { coins: 0, name: user?.first_name || "Guest" });
+        document.getElementById("balance").innerText = 0;
+      }
+    }
+
+    loadBalance();
   </script>
 </body>
 </html>
