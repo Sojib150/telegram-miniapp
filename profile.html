@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile - প্রোফাইল</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>👤 আমার প্রোফাইল</h1>
 
+  <div>
+    <p><b>নাম:</b> <span id="userName"></span></p>
+    <p><b>কয়েন:</b> <span id="userCoins">0</span></p>
+  </div>
+
+  <button id="logoutBtn">🚪 লগআউট</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+
+    // Firebase init
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const userNameEl = document.getElementById("userName");
+    const userCoinsEl = document.getElementById("userCoins");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    async function loadProfile() {
+      const username = localStorage.getItem("username");
+      if (!username) {
+        alert("⚠️ আগে লগইন করুন!");
+        window.location.href = "index.html";
+        return;
+      }
+
+      userNameEl.textContent = username;
+
+      const userRef = doc(db, "users", username);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        userCoinsEl.textContent = snap.data().coins || 0;
+      } else {
+        userCoinsEl.textContent = 0;
+      }
+    }
+
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>
