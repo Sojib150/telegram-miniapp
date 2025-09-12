@@ -3,38 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EarnApp MiniApp</title>
+  <title>রিওয়ার্ড অ্যাপ</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app">
-    <h2>💰 EarnApp MiniApp</h2>
-    <p id="welcome">স্বাগতম! এখানে অ্যাড দেখে কয়েন আয় করুন 🎉</p>
+  <div class="container">
+    <h1>💰 রিওয়ার্ড সিস্টেম অ্যাপ</h1>
+    <p>স্বাগতম! নিচে থেকে একটি অপশন বেছে নিন:</p>
 
-    <!-- Balance -->
-    <div class="balance-box">
-      <h3>আমার কয়েন: <span id="balance">0</span> 🪙</h3>
+    <div class="menu">
+      <a href="ads.html" class="btn">📺 এড দেখুন</a>
+      <a href="game.html" class="btn">🎮 গেম খেলুন</a>
+      <a href="withdraw.html" class="btn">💵 টাকা তুলুন</a>
+      <a href="profile.html" class="btn">👤 প্রোফাইল</a>
     </div>
-
-    <!-- Watch Ads -->
-    <button id="watchAdBtn">📺 অ্যাড দেখুন (১৫ সেকেন্ড)</button>
-    <div id="adContainer" class="hidden"></div>
-    <p id="timer"></p>
-
-    <!-- Play Game -->
-    <button id="playGameBtn">🎮 গেম খেলুন</button>
-
-    <!-- Withdraw -->
-    <h3>💵 উইথড্র</h3>
-    <form id="withdrawForm">
-      <input type="text" id="name" placeholder="আপনার নাম লিখুন" required>
-      <input type="text" id="bkash" placeholder="বিকাশ নাম্বার লিখুন" required>
-      <button type="submit">✅ উইথড্র রিকোয়েস্ট</button>
-    </form>
-
-    <p id="message"></p>
   </div>
-
-  <script src="script.js"></script>
 </body>
 </html>
