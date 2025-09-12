@@ -2,31 +2,135 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎮 গেম খেলুন</title>
+  <title>🎮 Game - গেম খেলুন</title>
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <style>
+    #gameArea {
+      width: 300px;
+      height: 300px;
+      border: 2px solid #333;
+      margin: 20px auto;
+      position: relative;
+      background: #f4f4f4;
+    }
+    #player {
+      width: 40px;
+      height: 40px;
+      background: red;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #target {
+      width: 40px;
+      height: 40px;
+      background: green;
+      position: absolute;
+    }
+    #message {
+      text-align: center;
+      font-weight: bold;
+      margin: 10px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🎮 বাবল গেম</h2>
-    <p>১০ সেকেন্ডের মধ্যে যত বেশি বাবল ক্লিক করতে পারবেন তত ভালো!</p>
-
-    <div id="gameArea"></div>
-    <p>⏳ সময়: <span id="timeLeft">10</span> সেকেন্ড</p>
-    <p>👉 স্কোর: <span id="score">0</span></p>
-
-    <button id="startGame">▶️ গেম শুরু করুন</button>
-    <br><br>
-    <a href="index.html" class="btn">🏠 হোমে ফিরে যান</a>
-
-    <div id="adSection" style="display:none; margin-top:20px;">
-      <h3>📺 গেম শেষ! এখন এড দেখুন...</h3>
-      <!-- এখানে Adsterra Native ad -->
-      <script async="async" data-cfasync="false" src="//pl27590817.revenuecpmgate.com/15bb6fd989846930069557e9a22f454c/invoke.js"></script>
-      <div id="container-15bb6fd989846930069557e9a22f454c"></div>
-      <button id="collectGameReward" disabled>✅ কয়েন সংগ্রহ করুন</button>
-    </div>
+  <h1>🎮 মিনি গেম</h1>
+  <p id="message">টার্গেটে পৌঁছালে কয়েন পাবেন!</p>
+  <div id="gameArea">
+    <div id="player"></div>
+    <div id="target"></div>
   </div>
+  <p style="text-align:center;">🔼🔽◀️▶️ বোতাম ব্যবহার করে খেলুন</p>
+
+  <div style="text-align:center;">
+    <button onclick="move('up')">⬆️</button>
+    <br>
+    <button onclick="move('left')">⬅️</button>
+    <button onclick="move('down')">⬇️</button>
+    <button onclick="move('right')">➡️</button>
+  </div>
+
+  <!-- এখানে এড (Adsterra / Banner / Native) বসবে -->
+  <div id="adContainer" style="display:none; margin-top:20px; text-align:center;">
+    <h3>স্পন্সরড বিজ্ঞাপন</h3>
+    <script async="async" data-cfasync="false" src="//pl27590817.revenuecpmgate.com/15bb6fd989846930069557e9a22f454c/invoke.js"></script>
+    <div id="container-15bb6fd989846930069557e9a22f454c"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const player = document.getElementById("player");
+    const target = document.getElementById("target");
+    const msg = document.getElementById("message");
+    const adContainer = document.getElementById("adContainer");
+
+    let x = 0, y = 0;
+
+    // টার্গেটকে র‌্যান্ডম জায়গায় বসানো
+    function randomTarget() {
+      const tx = Math.floor(Math.random() * 7) * 40;
+      const ty = Math.floor(Math.random() * 7) * 40;
+      target.style.left = tx + "px";
+      target.style.top = ty + "px";
+    }
+    randomTarget();
+
+    // মুভ ফাংশন
+    window.move = function (dir) {
+      if (dir === "up" && y > 0) y -= 40;
+      if (dir === "down" && y < 260) y += 40;
+      if (dir === "left" && x > 0) x -= 40;
+      if (dir === "right" && x < 260) x += 40;
+
+      player.style.left = x + "px";
+      player.style.top = y + "px";
+
+      checkWin();
+    };
+
+    // জয় চেক করা
+    async function checkWin() {
+      if (player.offsetLeft === target.offsetLeft &&
+          player.offsetTop === target.offsetTop) {
+        msg.textContent = "🎉 জিতেছেন! ১০ কয়েন যুক্ত হয়েছে।";
+
+        // এড দেখানো হবে
+        adContainer.style.display = "block";
+
+        const username = localStorage.getItem("username");
+        if (!username) return;
+
+        const userRef = doc(db, "users", username);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+          await updateDoc(userRef, {
+            coins: (snap.data().coins || 0) + 10
+          });
+        } else {
+          await setDoc(userRef, { coins: 10 });
+        }
+
+        // নতুন টার্গেট বসানো
+        randomTarget();
+      }
+    }
+  </script>
 </body>
 </html>
