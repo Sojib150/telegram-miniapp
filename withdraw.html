@@ -2,31 +2,52 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <title>Withdraw - টাকা তুলুন</title>
+  <title>💵 Withdraw - টাকা তুলুন</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    form {
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: #f9f9f9;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #999;
+    }
+    button {
+      background: green;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #message {
+      text-align: center;
+      font-weight: bold;
+      margin: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h1>💳 টাকা তুলুন</h1>
+  <h1>💵 টাকা তোলার রিকোয়েস্ট</h1>
+  <p style="text-align:center;">👉 ন্যূনতম ১০০০ কয়েন (১০০ টাকা) হলে উইথড্র করা যাবে।</p>
 
-  <p>মিনিমাম ১০০০ কয়েন = ১০০ টাকা</p>
+  <form id="withdrawForm">
+    <input type="text" id="name" placeholder="আপনার নাম" required>
+    <input type="text" id="bkash" placeholder="বিকাশ নাম্বার" required>
+    <button type="submit">✅ রিকোয়েস্ট পাঠান</button>
+  </form>
 
-  <div>
-    <label>বিকাশ নাম্বার:</label><br>
-    <input type="text" id="bkashNumber" placeholder="01XXXXXXXXX">
-  </div>
-
-  <div>
-    <label>নাম:</label><br>
-    <input type="text" id="fullName" placeholder="আপনার নাম লিখুন">
-  </div>
-
-  <button id="withdrawBtn">✅ Withdraw করুন</button>
-
-  <p id="status"></p>
+  <p id="message"></p>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     // Firebase config
     const firebaseConfig = {
@@ -38,59 +59,56 @@
       appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
     };
 
-    // Firebase init
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const withdrawBtn = document.getElementById("withdrawBtn");
-    const statusEl = document.getElementById("status");
+    const form = document.getElementById("withdrawForm");
+    const msg = document.getElementById("message");
 
-    withdrawBtn.addEventListener("click", async () => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
       const username = localStorage.getItem("username");
       if (!username) {
-        alert("⚠️ আগে লগইন করুন!");
+        msg.textContent = "❌ লগইন করা হয়নি!";
         return;
       }
 
-      const bkashNumber = document.getElementById("bkashNumber").value.trim();
-      const fullName = document.getElementById("fullName").value.trim();
-
-      if (!bkashNumber || !fullName) {
-        alert("⚠️ সব ঘর পূরণ করুন!");
-        return;
-      }
+      const name = document.getElementById("name").value;
+      const bkash = document.getElementById("bkash").value;
 
       const userRef = doc(db, "users", username);
       const snap = await getDoc(userRef);
 
       if (!snap.exists()) {
-        alert("⚠️ কোনো কয়েন পাওয়া যায়নি!");
+        msg.textContent = "❌ আপনার অ্যাকাউন্ট পাওয়া যায়নি।";
         return;
       }
 
       const coins = snap.data().coins || 0;
-
       if (coins < 1000) {
-        statusEl.textContent = "❌ আপনার কাছে পর্যাপ্ত কয়েন নেই! (মিনিমাম 1000 দরকার)";
+        msg.textContent = "❌ ন্যূনতম ১০০০ কয়েন না হলে উইথড্র করা যাবে না।";
         return;
       }
 
-      // কয়েন কেটে Withdraw রিকোয়েস্ট জমা
-      const withdrawAmount = Math.floor(coins / 1000) * 100; // 100 টাকা প্রতি 1000 কয়েন
-      const newCoins = coins - (Math.floor(coins / 1000) * 1000);
-
-      await updateDoc(userRef, { coins: newCoins });
-
-      await addDoc(collection(db, "withdrawRequests"), {
-        username,
-        fullName,
-        bkashNumber,
-        amount: withdrawAmount,
+      // withdraw request Firebase এ সেভ করা
+      await addDoc(collection(db, "withdraw_requests"), {
+        username: username,
+        name: name,
+        bkash: bkash,
+        coins: coins,
+        amount: (coins / 10), // 1000 কয়েন = 100 টাকা
         status: "pending",
         time: new Date()
       });
 
-      statusEl.textContent = `✅ Withdraw রিকোয়েস্ট পাঠানো হয়েছে! ${withdrawAmount} টাকা প্রসেসিং হবে।`;
+      // ইউজারের কয়েন কমিয়ে দেওয়া
+      await updateDoc(userRef, {
+        coins: 0
+      });
+
+      msg.textContent = "✅ আপনার রিকোয়েস্ট সাবমিট হয়েছে, ২৪ ঘন্টার মধ্যে প্রসেস হবে।";
+      form.reset();
     });
   </script>
 </body>
