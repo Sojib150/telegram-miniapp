@@ -2,69 +2,50 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <title>Profile - প্রোফাইল</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>প্রোফাইল</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Telegram SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <h1>👤 আমার প্রোফাইল</h1>
+  <div class="container">
+    <h2>আমার প্রোফাইল</h2>
+    
+    <p><strong>নাম:</strong> <span id="userName">লোড হচ্ছে...</span></p>
+    <p><strong>Telegram ID:</strong> <span id="userId">লোড হচ্ছে...</span></p>
+    <p><strong>কয়েন:</strong> <span id="coinCount">0</span></p>
 
-  <div>
-    <p><b>নাম:</b> <span id="userName"></span></p>
-    <p><b>কয়েন:</b> <span id="userCoins">0</span></p>
+    <button onclick="goHome()">🏠 হোমে ফিরে যান</button>
   </div>
 
-  <button id="logoutBtn">🚪 লগআউট</button>
+  <script>
+    // Telegram Auto Login
+    window.onload = () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        const user = tg.initDataUnsafe?.user;
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        if (user) {
+          // Save data in localStorage
+          localStorage.setItem("userId", user.id);
+          localStorage.setItem("userName", user.first_name + " " + (user.last_name || ""));
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+          // Show on profile page
+          document.getElementById("userName").textContent = localStorage.getItem("userName");
+          document.getElementById("userId").textContent = localStorage.getItem("userId");
+          document.getElementById("coinCount").textContent = localStorage.getItem("coins") || 0;
+        } else {
+          alert("⚠️ দয়া করে Telegram এর ভেতরে এই অ্যাপ ওপেন করুন!");
+        }
+      }
     };
 
-    // Firebase init
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const userNameEl = document.getElementById("userName");
-    const userCoinsEl = document.getElementById("userCoins");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    async function loadProfile() {
-      const username = localStorage.getItem("username");
-      if (!username) {
-        alert("⚠️ আগে লগইন করুন!");
-        window.location.href = "index.html";
-        return;
-      }
-
-      userNameEl.textContent = username;
-
-      const userRef = doc(db, "users", username);
-      const snap = await getDoc(userRef);
-
-      if (snap.exists()) {
-        userCoinsEl.textContent = snap.data().coins || 0;
-      } else {
-        userCoinsEl.textContent = 0;
-      }
-    }
-
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("username");
+    function goHome() {
       window.location.href = "index.html";
-    });
-
-    loadProfile();
+    }
   </script>
 </body>
 </html>
-<input type="text" id="userName" placeholder="Enter Your Name">
-<button onclick="updateProfile(document.getElementById('userName').value)">Update Profile</button>
