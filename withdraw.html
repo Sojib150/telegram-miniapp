@@ -1,1 +1,97 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>Withdraw - টাকা তুলুন</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>💳 টাকা তুলুন</h1>
 
+  <p>মিনিমাম ১০০০ কয়েন = ১০০ টাকা</p>
+
+  <div>
+    <label>বিকাশ নাম্বার:</label><br>
+    <input type="text" id="bkashNumber" placeholder="01XXXXXXXXX">
+  </div>
+
+  <div>
+    <label>নাম:</label><br>
+    <input type="text" id="fullName" placeholder="আপনার নাম লিখুন">
+  </div>
+
+  <button id="withdrawBtn">✅ Withdraw করুন</button>
+
+  <p id="status"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+
+    // Firebase init
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const withdrawBtn = document.getElementById("withdrawBtn");
+    const statusEl = document.getElementById("status");
+
+    withdrawBtn.addEventListener("click", async () => {
+      const username = localStorage.getItem("username");
+      if (!username) {
+        alert("⚠️ আগে লগইন করুন!");
+        return;
+      }
+
+      const bkashNumber = document.getElementById("bkashNumber").value.trim();
+      const fullName = document.getElementById("fullName").value.trim();
+
+      if (!bkashNumber || !fullName) {
+        alert("⚠️ সব ঘর পূরণ করুন!");
+        return;
+      }
+
+      const userRef = doc(db, "users", username);
+      const snap = await getDoc(userRef);
+
+      if (!snap.exists()) {
+        alert("⚠️ কোনো কয়েন পাওয়া যায়নি!");
+        return;
+      }
+
+      const coins = snap.data().coins || 0;
+
+      if (coins < 1000) {
+        statusEl.textContent = "❌ আপনার কাছে পর্যাপ্ত কয়েন নেই! (মিনিমাম 1000 দরকার)";
+        return;
+      }
+
+      // কয়েন কেটে Withdraw রিকোয়েস্ট জমা
+      const withdrawAmount = Math.floor(coins / 1000) * 100; // 100 টাকা প্রতি 1000 কয়েন
+      const newCoins = coins - (Math.floor(coins / 1000) * 1000);
+
+      await updateDoc(userRef, { coins: newCoins });
+
+      await addDoc(collection(db, "withdrawRequests"), {
+        username,
+        fullName,
+        bkashNumber,
+        amount: withdrawAmount,
+        status: "pending",
+        time: new Date()
+      });
+
+      statusEl.textContent = `✅ Withdraw রিকোয়েস্ট পাঠানো হয়েছে! ${withdrawAmount} টাকা প্রসেসিং হবে।`;
+    });
+  </script>
+</body>
+</html>
