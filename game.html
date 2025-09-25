@@ -1,143 +1,98 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banana Smash Game</title>
-<style>
-  body { margin: 0; font-family: sans-serif; background: #cceeff; text-align: center; }
-  #score { font-size: 24px; font-weight: bold; margin: 10px 0; }
-  #gameCanvas { border: 2px solid #000; background: #a3dfff; display: block; margin: 0 auto; }
-  #ad { margin: 10px auto; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banana Game</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+  <style>
+    body { margin:0; overflow:hidden; background:#fef9c3; }
+    canvas { display:block; }
+    #score { position:absolute; top:20px; left:20px; font-size:24px; font-weight:bold; color:#333; }
+  </style>
 </head>
 <body>
+  <div id="score">🍌 Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
 
-<div id="score">কয়েন: 0</div>
-<canvas id="gameCanvas" width="400" height="600"></canvas>
-<div id="ad"></div>
+<script>
+  // Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+    authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+    projectId: "telegram-miniapp-e8cc0",
+    storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+    messagingSenderId: "827930913054",
+    appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+  };
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+  // Telegram User
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  const user = tg.initDataUnsafe?.user;
+  let userId = user?.id?.toString();
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-  authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-  projectId: "telegram-miniapp-e8cc0",
-  storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-  messagingSenderId: "827930913054",
-  appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-};
+  // Game
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  let bananas = [];
+  let score = 0;
 
-// Telegram WebApp init
-Telegram.WebApp.ready();
-const userId = Telegram.WebApp.initDataUnsafe.user.id;
-const username = Telegram.WebApp.initDataUnsafe.user.username || "Player";
-
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-let bananas = [];
-let score = 0;
-
-// Load user score from Firestore
-async function loadScore() {
-  const userRef = doc(db, "users", String(userId));
-  const userSnap = await getDoc(userRef);
-  if(userSnap.exists()) {
-    score = userSnap.data().score;
-    document.getElementById("score").innerText = "কয়েন: " + score;
-  } else {
-    await setDoc(userRef, { username, score: 0 });
+  function spawnBanana(){
+    bananas.push({
+      x: Math.random() * canvas.width,
+      y: -50,
+      speed: 2 + Math.random() * 3
+    });
   }
-}
 
-// Update score to Firestore
-async function updateScoreOnServer() {
-  const userRef = doc(db, "users", String(userId));
-  await setDoc(userRef, { username, score }, { merge: true });
-}
-
-// Load ad from Firestore
-async function loadAds() {
-  const adRef = doc(db, "ads", "ad1"); // Replace "ad1" with your ad doc id
-  const adSnap = await getDoc(adRef);
-  if(adSnap.exists()) {
-    const ad = adSnap.data();
-    document.getElementById("ad").innerHTML = `
-      <a href="${ad.ad_url}" target="_blank">
-        <img src="${ad.ad_image}" style="width:300px;">
-      </a>`;
+  function drawBanana(b){
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 25, 0, Math.PI * 2);
+    ctx.fillStyle = "yellow";
+    ctx.fill();
+    ctx.stroke();
+    ctx.closePath();
   }
-}
 
-// Call initial functions
-loadScore();
-loadAds();
+  canvas.addEventListener("click", e=>{
+    bananas.forEach((b, i)=>{
+      let dx = e.clientX - b.x;
+      let dy = e.clientY - b.y;
+      if(Math.sqrt(dx*dx + dy*dy) < 25){
+        bananas.splice(i,1);
+        score++;
+        document.getElementById("score").innerText = "🍌 Score: " + score;
 
-// Banana image
-const bananaImg = new Image();
-bananaImg.src = "https://i.ibb.co/mJ0rjwP/banana.png";
+        // 🔥 Save coins to Firebase
+        if(userId){
+          db.collection("users").doc(userId).update({
+            coins: firebase.firestore.FieldValue.increment(1)
+          });
+        }
+      }
+    });
+  });
 
-// Create random banana
-function createBanana() {
-  const x = Math.random() * (canvas.width - 50);
-  bananas.push({ x, y: -50, w: 40, h: 40 });
-}
-
-// Draw bananas
-function drawBananas() {
-  bananas.forEach(b => ctx.drawImage(bananaImg, b.x, b.y, b.w, b.h));
-}
-
-// Update bananas
-function updateBananas() {
-  bananas.forEach(b => b.y += 3);
-  bananas = bananas.filter(b => b.y < canvas.height + 50);
-}
-
-// Smash banana & update score
-function smashBanana(x, y) {
-  for(let i=0; i<bananas.length; i++) {
-    let b = bananas[i];
-    if(x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h) {
-      bananas.splice(i,1);
-      score += 10;
-      document.getElementById("score").innerText = "কয়েন: " + score;
-      updateScoreOnServer();
-      break;
-    }
+  function gameLoop(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    bananas.forEach(b=>{
+      b.y += b.speed;
+      drawBanana(b);
+    });
+    bananas = bananas.filter(b=> b.y < canvas.height+50);
+    requestAnimationFrame(gameLoop);
   }
-}
 
-// Handle click/touch
-function handleClick(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX || e.touches[0].clientX) - rect.left;
-  const y = (e.clientY || e.touches[0].clientY) - rect.top;
-  smashBanana(x, y);
-}
-
-canvas.addEventListener("click", handleClick);
-canvas.addEventListener("touchstart", e => { e.preventDefault(); handleClick(e); });
-
-// Spawn bananas every second
-setInterval(createBanana, 1000);
-
-// Game loop
-function gameLoop() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawBananas();
-  updateBananas();
-  requestAnimationFrame(gameLoop);
-}
-
-gameLoop();
+  setInterval(spawnBanana, 1000);
+  gameLoop();
 </script>
 </body>
 </html>
