@@ -1,98 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Banana Game</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-  <style>
-    body { margin:0; overflow:hidden; background:#fef9c3; }
-    canvas { display:block; }
-    #score { position:absolute; top:20px; left:20px; font-size:24px; font-weight:bold; color:#333; }
-  </style>
+  <title>Banana Pop Game</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Monetag SDK -->
+  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 </head>
-<body>
-  <div id="score">🍌 Score: 0</div>
-  <canvas id="gameCanvas"></canvas>
+<body style="background: linear-gradient(135deg,#fef3c7,#fde68a); overflow:hidden;">
+  
+  <div id="scoreBoard">🍌 স্কোর: <span id="score">0</span></div>
+  <canvas id="gameCanvas" width="360" height="500"></canvas>
 
-<script>
-  // Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-    authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-    projectId: "telegram-miniapp-e8cc0",
-    storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-    messagingSenderId: "827930913054",
-    appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-  };
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <script>
+    // ================= Firebase Setup =================
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  // Telegram User
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-  const user = tg.initDataUnsafe?.user;
-  let userId = user?.id?.toString();
+    // ইউজারের টেলিগ্রাম আইডি (পরে টেলিগ্রাম থেকে আসবে, এখন ডেমো হিসেবে)
+    const userId = "demo_user";
 
-  // Game
-  const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+    async function updateCoins(amount) {
+      const ref = db.collection("users").doc(userId);
+      await ref.set(
+        { coins: firebase.firestore.FieldValue.increment(amount) },
+        { merge: true }
+      );
+    }
 
-  let bananas = [];
-  let score = 0;
+    // ================= Game Setup =================
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-  function spawnBanana(){
-    bananas.push({
-      x: Math.random() * canvas.width,
-      y: -50,
-      speed: 2 + Math.random() * 3
-    });
-  }
+    let bananas = [];
+    let score = 0;
 
-  function drawBanana(b){
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, 25, 0, Math.PI * 2);
-    ctx.fillStyle = "yellow";
-    ctx.fill();
-    ctx.stroke();
-    ctx.closePath();
-  }
+    const bananaImg = new Image();
+    bananaImg.src = "https://i.ibb.co/6ZspsD1/banana.png";
 
-  canvas.addEventListener("click", e=>{
-    bananas.forEach((b, i)=>{
-      let dx = e.clientX - b.x;
-      let dy = e.clientY - b.y;
-      if(Math.sqrt(dx*dx + dy*dy) < 25){
-        bananas.splice(i,1);
-        score++;
-        document.getElementById("score").innerText = "🍌 Score: " + score;
+    function createBanana() {
+      const x = Math.random() * (canvas.width - 50);
+      bananas.push({ x: x, y: -50, w: 50, h: 50 });
+    }
 
-        // 🔥 Save coins to Firebase
-        if(userId){
-          db.collection("users").doc(userId).update({
-            coins: firebase.firestore.FieldValue.increment(1)
-          });
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      bananas.forEach((banana, index) => {
+        banana.y += 3;
+        ctx.drawImage(bananaImg, banana.x, banana.y, banana.w, banana.h);
+
+        if (banana.y > canvas.height) {
+          bananas.splice(index, 1);
         }
-      }
-    });
-  });
+      });
 
-  function gameLoop(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    bananas.forEach(b=>{
-      b.y += b.speed;
-      drawBanana(b);
-    });
-    bananas = bananas.filter(b=> b.y < canvas.height+50);
-    requestAnimationFrame(gameLoop);
-  }
+      requestAnimationFrame(update);
+    }
 
-  setInterval(spawnBanana, 1000);
-  gameLoop();
-</script>
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      bananas.forEach((banana, index) => {
+        if (
+          mouseX >= banana.x &&
+          mouseX <= banana.x + banana.w &&
+          mouseY >= banana.y &&
+          mouseY <= banana.y + banana.h
+        ) {
+          bananas.splice(index, 1);
+          score += 10;
+          document.getElementById("score").innerText = score;
+
+          // Firebase এ কয়েন যোগ
+          updateCoins(10);
+
+          // প্রতি ৫০ পয়েন্ট পর এড দেখাও
+          if (score % 50 === 0) {
+            if (typeof Monetag !== "undefined" && Monetag.show_9931551) {
+              Monetag.show_9931551();
+            }
+          }
+        }
+      });
+    });
+
+    setInterval(createBanana, 1500);
+    update();
+  </script>
 </body>
 </html>
