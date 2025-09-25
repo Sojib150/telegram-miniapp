@@ -1,65 +1,89 @@
-<!-- ads.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Watch Ad</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earn Coins - বিজ্ঞাপন</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: "Noto Sans Bengali", sans-serif;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      background: #4a90e2;
+      color: white;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    main {
+      margin: 20px;
+    }
+    .ad-box {
+      margin: 20px auto;
+      padding: 10px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      max-width: 350px;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: 0.3s;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-  <div class="card center">
-    <h2>📺 Watch Ad & Earn</h2>
-    <div style="margin-top:12px">
-      <!-- Place ad area (Adsterra / Monetag script can go here) -->
-      <div id="adArea" style="width:100%;height:250px;border-radius:10px;border:1px solid #eef7ff;display:flex;align-items:center;justify-content:center;">
-        <small class="small">Ad will display here on a live host</small>
-      </div>
+  <header>
+    🎥 বিজ্ঞাপন দেখে কয়েন আয় করুন
+  </header>
 
-      <p id="adTimer" class="small">Press "Start Ad" and wait 15s to claim reward</p>
-      <button id="startAdBtn" class="btn">▶ Start Ad (15s)</button>
-      <button id="claimAdBtn" class="btn ghost" disabled style="display:block;margin-top:8px">✅ Claim Reward</button>
+  <main>
+    <p>✅ প্রতিবার ১৫ সেকেন্ড বিজ্ঞাপন দেখার পর আপনি <b>10 কয়েন</b> পাবেন।</p>
+
+    <!-- Monetag Ad Box -->
+    <div class="ad-box">
+      <h3>🔽 এখানে বিজ্ঞাপন দেখুন 🔽</h3>
+      <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
     </div>
-  </div>
 
-  <script type="module">
-    import './app.js';
-    const startBtn = document.getElementById('startAdBtn');
-    const claimBtn = document.getElementById('claimAdBtn');
-    const adTimer = document.getElementById('adTimer');
+    <button id="rewardBtn" onclick="claimReward()" disabled>
+      15 সেকেন্ড অপেক্ষা করুন...
+    </button>
+  </main>
 
-    let countdown;
+  <script>
+    let coins = localStorage.getItem("coins") ? parseInt(localStorage.getItem("coins")) : 0;
+    const rewardBtn = document.getElementById("rewardBtn");
 
-    startBtn.addEventListener('click', async ()=>{
-      // OPTIONAL: inject monetag/adsterra script here (works on live host)
-      // document.getElementById('adArea').innerHTML = "<script src='//pl275...'></script>";
+    // 15 সেকেন্ড পর বাটন চালু হবে
+    setTimeout(() => {
+      rewardBtn.disabled = false;
+      rewardBtn.innerText = "✅ কয়েন নিন";
+    }, 15000);
 
-      let t = 15;
-      startBtn.disabled = true;
-      adTimer.innerText = `⏳ Wait ${t}s...`;
-      claimBtn.disabled = true;
-      countdown = setInterval(()=>{
-        t--;
-        adTimer.innerText = `⏳ Wait ${t}s...`;
-        if(t<=0){
-          clearInterval(countdown);
-          adTimer.innerText = "✅ Ad finished! Press claim to get coins";
-          claimBtn.disabled = false;
-        }
-      },1000);
-    });
-
-    claimBtn.addEventListener('click', async ()=>{
-      const user = window.appHelpers.getTelegramUser();
-      const id = user?.id || localStorage.getItem('guest_user');
-      if(!id){ alert("Open inside Telegram or set guest id."); return; }
-
-      // give coins (example 10)
-      await window.appHelpers.addCoinsToUser(id, 10);
-      claimBtn.disabled = true;
-      startBtn.disabled = false;
-      adTimer.innerText = "✅ Claimed 10 coins";
-    });
+    function claimReward() {
+      coins += 10;
+      localStorage.setItem("coins", coins);
+      alert("🎉 আপনি 10 কয়েন পেয়েছেন!\nবর্তমান কয়েন: " + coins);
+      rewardBtn.disabled = true;
+      rewardBtn.innerText = "✔️ কয়েন নেওয়া হয়েছে";
+    }
   </script>
 </body>
 </html>
