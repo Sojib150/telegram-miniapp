@@ -1,53 +1,74 @@
+<!-- profile.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <title>Telegram Auto Login</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Profile</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      text-align: center;
-      padding: 20px;
-    }
-    .profile {
-      margin-top: 50px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    img {
-      border-radius: 50%;
-      margin-bottom: 10px;
-    }
-  </style>
 </head>
 <body>
-  <h2>🎉 টেলিগ্রাম দিয়ে অটো লগইন</h2>
-  <div class="profile" id="profileBox">
-    <p>লগইন হচ্ছে...</p>
+  <div class="card center">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="logo">EA</div>
+      <div>
+        <div id="profileName" style="font-weight:700">Loading...</div>
+        <div class="small" id="profileUsername">@..</div>
+      </div>
+    </div>
+
+    <div class="balance-box" style="margin-top:12px">
+      <h3>💰 Coins</h3>
+      <strong id="profileCoins">0</strong>
+    </div>
+
+    <div style="margin-top:12px">
+      <button class="btn" id="inviteBtn">Invite Friends (Copy link)</button>
+      <button class="btn ghost" onclick="location.href='withdraw.html'">Withdraw</button>
+    </div>
+    <p class="small" style="margin-top:8px">Share your invite link to earn referral coins</p>
   </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand(); // ফুলস্ক্রিনে আনবে
+  <script type="module">
+    import './app.js';
+    const user = window.appHelpers.getTelegramUser();
+    const id = user?.id || localStorage.getItem('guest_user');
+    await window.appHelpers.ensureUserDoc(id, { name: user?.first_name, username: user?.username });
 
-    const user = tg.initDataUnsafe?.user;
+    document.getElementById('profileName').innerText = user?.first_name + (user?.last_name ? ' '+user.last_name : '');
+    document.getElementById('profileUsername').innerText = user?.username ? '@'+user.username : '';
 
-    if (user) {
-      document.getElementById("profileBox").innerHTML = `
-        <img src="https://t.me/i/userpic/320/${user.id}.jpg" width="100">
-        <h3>${user.first_name} ${user.last_name || ""}</h3>
-        <p>🆔 ID: ${user.id}</p>
-        <p>👤 Username: @${user.username || "নাই"}</p>
-      `;
-    } else {
-      document.getElementById("profileBox").innerHTML = `
-        <p>⚠️ লগইন হয়নি। Telegram Mini App থেকে ওপেন করো।</p>
-      `;
-    }
+    // realtime coins
+    import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js").then(({doc, onSnapshot, getFirestore})=>{
+      const db = getFirestore();
+      const ref = doc(db, "users", String(id));
+      onSnapshot(ref, snap=>{
+        if(snap.exists()) document.getElementById('profileCoins').innerText = snap.data().coins || 0;
+      });
+    });
+
+    // invite link (copy)
+    document.getElementById('inviteBtn').addEventListener('click', ()=>{
+      const origin = location.origin + location.pathname.replace(/\/[^\/]*$/,'');
+      const inviteLink = `${location.origin}${location.pathname.replace(/\/[^\/]*$/,'')}/?ref=${id}`;
+      navigator.clipboard.writeText(inviteLink).then(()=> alert("Invite link copied!"));
+    });
+
+    // if opened with ?ref=XYZ -> credit referral (only once)
+    (async ()=>{
+      const params = new URLSearchParams(location.search);
+      const ref = params.get('ref');
+      if(ref && ref !== String(id)){
+        const key = 'ref_claimed_'+String(ref);
+        if(!localStorage.getItem(key)){
+          // increment referral count and give bonus coins to referrer
+          await window.appHelpers.ensureUserDoc(ref);
+          await window.appHelpers.addCoinsToUser(ref, 50); // referral bonus
+          // mark as claimed locally
+          localStorage.setItem(key, '1');
+        }
+      }
+    })();
   </script>
 </body>
 </html>
