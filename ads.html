@@ -1,89 +1,45 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Earn Coins - বিজ্ঞাপন</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>বিজ্ঞাপন</title>
   <style>
     body {
-      font-family: "Noto Sans Bengali", sans-serif;
-      background: #f4f7fb;
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
       text-align: center;
+      background: #f7f9fc;
+      color: #333;
+      margin: 0;
+      padding: 20px;
     }
-    header {
-      background: #4a90e2;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-    main {
-      margin: 20px;
+    h2 {
+      margin-bottom: 15px;
+      color: #222;
     }
     .ad-box {
       margin: 20px auto;
-      padding: 10px;
+      padding: 15px;
       background: #fff;
+      border: 1px solid #ddd;
       border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       max-width: 350px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    button {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: 0.3s;
-    }
-    button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+    .loading {
+      font-size: 14px;
+      color: #666;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <header>
-    🎥 বিজ্ঞাপন দেখে কয়েন আয় করুন
-  </header>
+  <h2>🎉 আপনার জন্য বিজ্ঞাপন লোড হচ্ছে...</h2>
 
-  <main>
-    <p>✅ প্রতিবার ১৫ সেকেন্ড বিজ্ঞাপন দেখার পর আপনি <b>10 কয়েন</b> পাবেন।</p>
-
-    <!-- Monetag Ad Box -->
-    <div class="ad-box">
-      <h3>🔽 এখানে বিজ্ঞাপন দেখুন 🔽</h3>
-      <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
-    </div>
-
-    <button id="rewardBtn" onclick="claimReward()" disabled>
-      15 সেকেন্ড অপেক্ষা করুন...
-    </button>
-  </main>
-
-  <script>
-    let coins = localStorage.getItem("coins") ? parseInt(localStorage.getItem("coins")) : 0;
-    const rewardBtn = document.getElementById("rewardBtn");
-
-    // 15 সেকেন্ড পর বাটন চালু হবে
-    setTimeout(() => {
-      rewardBtn.disabled = false;
-      rewardBtn.innerText = "✅ কয়েন নিন";
-    }, 15000);
-
-    function claimReward() {
-      coins += 10;
-      localStorage.setItem("coins", coins);
-      alert("🎉 আপনি 10 কয়েন পেয়েছেন!\nবর্তমান কয়েন: " + coins);
-      rewardBtn.disabled = true;
-      rewardBtn.innerText = "✔️ কয়েন নেওয়া হয়েছে";
-    }
-  </script>
+  <div class="ad-box">
+    <!-- Monetag Ad -->
+    <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
+    <p class="loading">অনুগ্রহ করে ১৫ সেকেন্ড অপেক্ষা করুন ⏳</p>
+  </div>
 </body>
 </html>
