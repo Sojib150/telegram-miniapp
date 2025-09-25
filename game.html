@@ -1,108 +1,88 @@
+<!-- game.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Banana Pop Game</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Banana Pop</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- Monetag SDK -->
-  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Monetag / Ad placeholder script loads on host -->
+  <script async src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
 </head>
-<body style="background: linear-gradient(135deg,#fef3c7,#fde68a); overflow:hidden;">
-  
-  <div id="scoreBoard">🍌 স্কোর: <span id="score">0</span></div>
-  <canvas id="gameCanvas" width="360" height="500"></canvas>
+<body>
+  <div class="card center">
+    <h2>🎮 Banana Pop</h2>
+    <div id="scoreWrap" style="margin-top:8px">
+      <span id="scoreLabel">Score: 0</span> &nbsp; <span id="coinLabel">Coins: 0</span>
+    </div>
+    <canvas id="gameCanvas" width="360" height="460" style="margin-top:12px; display:block;"></canvas>
 
-  <script>
-    // ================= Firebase Setup =================
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    <div id="adBanner" style="margin-top:12px; height:90px; border-radius:10px; border:1px solid #eef7ff; display:flex; align-items:center; justify-content:center;">
+      <small class="small">Ad area (Monetag / Adsterra only on live host)</small>
+    </div>
+    <p class="small">Tip: Click the falling bananas to pop & earn coins</p>
+  </div>
 
-    // ইউজারের টেলিগ্রাম আইডি (পরে টেলিগ্রাম থেকে আসবে, এখন ডেমো হিসেবে)
-    const userId = "demo_user";
+  <script type="module">
+    import './app.js';
+    // get user
+    const user = window.appHelpers.getTelegramUser();
+    const id = user?.id || localStorage.getItem('guest_user');
 
-    async function updateCoins(amount) {
-      const ref = db.collection("users").doc(userId);
-      await ref.set(
-        { coins: firebase.firestore.FieldValue.increment(amount) },
-        { merge: true }
-      );
+    // ensure user doc
+    await window.appHelpers.ensureUserDoc(id, { name: user?.first_name, username: user?.username });
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreLabel = document.getElementById('scoreLabel');
+    const coinLabel = document.getElementById('coinLabel');
+
+    let bananas = [], score = 0, coins = await window.appHelpers.getUserCoins(id);
+
+    coinLabel.innerText = 'Coins: ' + coins;
+
+    function spawn() {
+      const x = Math.random()*(canvas.width-40)+20;
+      bananas.push({x,y:-30,size:40, speed:2+Math.random()*2});
     }
-
-    // ================= Game Setup =================
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-
-    let bananas = [];
-    let score = 0;
-
-    const bananaImg = new Image();
-    bananaImg.src = "https://i.ibb.co/6ZspsD1/banana.png";
-
-    function createBanana() {
-      const x = Math.random() * (canvas.width - 50);
-      bananas.push({ x: x, y: -50, w: 50, h: 50 });
-    }
-
-    function update() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      bananas.forEach((banana, index) => {
-        banana.y += 3;
-        ctx.drawImage(bananaImg, banana.x, banana.y, banana.w, banana.h);
-
-        if (banana.y > canvas.height) {
-          bananas.splice(index, 1);
-        }
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      bananas.forEach((b,i)=> {
+        b.y += b.speed;
+        ctx.beginPath();
+        ctx.fillStyle = 'yellow';
+        ctx.ellipse(b.x, b.y, b.size/2, b.size/2, 0,0,Math.PI*2);
+        ctx.fill();
+        ctx.closePath();
+        if(b.y>canvas.height+50) bananas.splice(i,1);
       });
-
-      requestAnimationFrame(update);
+      requestAnimationFrame(draw);
     }
 
-    canvas.addEventListener("click", (e) => {
+    canvas.addEventListener('click', async (e)=>{
       const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      bananas.forEach((banana, index) => {
-        if (
-          mouseX >= banana.x &&
-          mouseX <= banana.x + banana.w &&
-          mouseY >= banana.y &&
-          mouseY <= banana.y + banana.h
-        ) {
-          bananas.splice(index, 1);
-          score += 10;
-          document.getElementById("score").innerText = score;
-
-          // Firebase এ কয়েন যোগ
-          updateCoins(10);
-
-          // প্রতি ৫০ পয়েন্ট পর এড দেখাও
-          if (score % 50 === 0) {
-            if (typeof Monetag !== "undefined" && Monetag.show_9931551) {
-              Monetag.show_9931551();
-            }
+      const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+      for(let i=bananas.length-1;i>=0;i--){
+        const b = bananas[i];
+        const dist = Math.hypot(cx-b.x, cy-b.y);
+        if(dist < b.size/1.5){
+          bananas.splice(i,1);
+          score++;
+          scoreLabel.innerText = 'Score: ' + score;
+          coins += 5; // reward per banana
+          coinLabel.innerText = 'Coins: ' + coins;
+          // credit to firebase
+          await window.appHelpers.addCoinsToUser(id, 5);
+          // show monetag ad occasionally
+          if(score % 10 === 0 && typeof Monetag !== 'undefined' && Monetag.show_9931551) {
+            try { Monetag.show_9931551(); } catch(e) { console.warn(e); }
           }
         }
-      });
+      }
     });
 
-    setInterval(createBanana, 1500);
-    update();
+    setInterval(spawn, 900);
+    draw();
   </script>
 </body>
 </html>
