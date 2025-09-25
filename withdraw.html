@@ -1,117 +1,58 @@
+<!-- withdraw.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <title>💵 Withdraw - টাকা তুলুন</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Withdraw</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    form {
-      max-width: 400px;
-      margin: auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background: #f9f9f9;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 5px;
-      border: 1px solid #999;
-    }
-    button {
-      background: green;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #message {
-      text-align: center;
-      font-weight: bold;
-      margin: 10px;
-    }
-  </style>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <h1>💵 টাকা তোলার রিকোয়েস্ট</h1>
-  <p style="text-align:center;">👉 ন্যূনতম ১০০০ কয়েন (১০০ টাকা) হলে উইথড্র করা যাবে।</p>
+  <div class="card center">
+    <h2>💵 Withdraw</h2>
+    <p class="small">Minimum 1000 coins = 100 TK</p>
 
-  <form id="withdrawForm">
-    <input type="text" id="name" placeholder="আপনার নাম" required>
-    <input type="text" id="bkash" placeholder="বিকাশ নাম্বার" required>
-    <button type="submit">✅ রিকোয়েস্ট পাঠান</button>
-  </form>
-
-  <p id="message"></p>
+    <input id="nameInput" class="input" placeholder="আপনার নাম">
+    <input id="bkashInput" class="input" placeholder="বিকাশ নাম্বার (01xxxxxxxxx)">
+    <button id="withdrawBtn" class="btn">Send Withdraw Request</button>
+    <p id="withdrawMsg" class="small"></p>
+  </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import './app.js';
+    const user = window.appHelpers.getTelegramUser();
+    const id = user?.id || localStorage.getItem('guest_user');
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-    };
+    // ensure doc
+    await window.appHelpers.ensureUserDoc(id, { name: user?.first_name, username: user?.username });
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const msg = document.getElementById('withdrawMsg');
 
-    const form = document.getElementById("withdrawForm");
-    const msg = document.getElementById("message");
+    withdrawBtn.addEventListener('click', async ()=>{
+      const name = document.getElementById('nameInput').value.trim();
+      const bkash = document.getElementById('bkashInput').value.trim();
+      if(!name || !bkash) { msg.innerText = 'Please fill both fields'; return; }
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+      const coins = await window.appHelpers.getUserCoins(id);
+      if(coins < 1000){ msg.innerText = 'You need minimum 1000 coins'; return; }
 
-      const username = localStorage.getItem("username");
-      if (!username) {
-        msg.textContent = "❌ লগইন করা হয়নি!";
-        return;
-      }
+      // compute amount (100 TK per 1000 coins)
+      const amountTk = Math.floor(coins / 1000) * 100;
+      // create withdraw request record and zero user's coins
+      await window.appHelpers.createWithdrawRequest(id, name, bkash, coins, amountTk);
+      // reset user's coins to remainder (coins % 1000)
+      const remaining = coins % 1000;
+      const ref = await window.appHelpers.ensureUserDoc(id);
+      // set coins to remaining
+      await (async ()=>{
+        // direct update
+        const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+        await updateDoc(doc((await import("./firebase.js")).default || (await import("./firebase.js")).firebaseConfig, "users", String(id)), { coins: remaining });
+      })().catch(()=>{ /*ignored*/ });
 
-      const name = document.getElementById("name").value;
-      const bkash = document.getElementById("bkash").value;
-
-      const userRef = doc(db, "users", username);
-      const snap = await getDoc(userRef);
-
-      if (!snap.exists()) {
-        msg.textContent = "❌ আপনার অ্যাকাউন্ট পাওয়া যায়নি।";
-        return;
-      }
-
-      const coins = snap.data().coins || 0;
-      if (coins < 1000) {
-        msg.textContent = "❌ ন্যূনতম ১০০০ কয়েন না হলে উইথড্র করা যাবে না।";
-        return;
-      }
-
-      // withdraw request Firebase এ সেভ করা
-      await addDoc(collection(db, "withdraw_requests"), {
-        username: username,
-        name: name,
-        bkash: bkash,
-        coins: coins,
-        amount: (coins / 10), // 1000 কয়েন = 100 টাকা
-        status: "pending",
-        time: new Date()
-      });
-
-      // ইউজারের কয়েন কমিয়ে দেওয়া
-      await updateDoc(userRef, {
-        coins: 0
-      });
-
-      msg.textContent = "✅ আপনার রিকোয়েস্ট সাবমিট হয়েছে, ২৪ ঘন্টার মধ্যে প্রসেস হবে।";
-      form.reset();
+      msg.innerText = `Withdraw request created for ${amountTk} TK. Admin will review.`;
     });
   </script>
 </body>
 </html>
-<input type="text" id="bkashNumber" placeholder="Enter bKash Number">
-<button onclick="withdrawBkash(document.getElementById('bkashNumber').value)">Withdraw</button>
