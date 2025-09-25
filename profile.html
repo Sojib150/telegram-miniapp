@@ -1,68 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile</title>
+  <title>Telegram Auto Login</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      text-align: center;
+      padding: 20px;
+    }
+    .profile {
+      margin-top: 50px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    img {
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-yellow-100 to-yellow-50 flex items-center justify-center h-screen">
-
-  <div class="bg-white shadow-2xl rounded-3xl p-6 w-80 text-center border border-gray-200">
-    <div class="relative">
-      <img id="userPic" class="w-24 h-24 rounded-full mx-auto border-4 border-yellow-400 shadow-lg" src="" alt="Profile">
-      <span class="absolute bottom-2 right-28 bg-green-400 w-4 h-4 rounded-full border-2 border-white"></span>
-    </div>
-    
-    <h2 id="userName" class="mt-3 text-2xl font-bold text-gray-800">Loading...</h2>
-    <p id="userId" class="text-gray-500 text-sm">ID: ...</p>
-
-    <div class="mt-5 bg-yellow-50 p-4 rounded-xl border border-yellow-200 shadow-inner">
-      <p class="text-gray-700 font-semibold">💰 Your Balance</p>
-      <h3 id="coinBalance" class="text-3xl font-bold text-yellow-600 mt-1">0</h3>
-    </div>
-
-    <button onclick="window.location.href='game.html'"
-      class="mt-6 w-full py-3 rounded-xl bg-yellow-500 text-white font-bold shadow-md hover:bg-yellow-600 transition">
-      🎮 Play & Earn Coins
-    </button>
+<body>
+  <h2>🎉 টেলিগ্রাম দিয়ে অটো লগইন</h2>
+  <div class="profile" id="profileBox">
+    <p>লগইন হচ্ছে...</p>
   </div>
 
-<script>
-  // Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-    authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-    projectId: "telegram-miniapp-e8cc0",
-    storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-    messagingSenderId: "827930913054",
-    appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-  };
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // ফুলস্ক্রিনে আনবে
 
-  // Telegram User
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-  const user = tg.initDataUnsafe?.user;
+    const user = tg.initDataUnsafe?.user;
 
-  if(user){
-    document.getElementById("userName").innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
-    document.getElementById("userId").innerText = "ID: " + user.id;
-    document.getElementById("userPic").src = user.photo_url || "https://i.pravatar.cc/100";
-
-    // 🔥 Realtime Listener
-    db.collection("users").doc(user.id.toString()).onSnapshot(doc=>{
-      if(doc.exists){
-        document.getElementById("coinBalance").innerText = doc.data().coins || 0;
-      } else {
-        db.collection("users").doc(user.id.toString()).set({coins:0});
-      }
-    });
-  }
-</script>
+    if (user) {
+      document.getElementById("profileBox").innerHTML = `
+        <img src="https://t.me/i/userpic/320/${user.id}.jpg" width="100">
+        <h3>${user.first_name} ${user.last_name || ""}</h3>
+        <p>🆔 ID: ${user.id}</p>
+        <p>👤 Username: @${user.username || "নাই"}</p>
+      `;
+    } else {
+      document.getElementById("profileBox").innerHTML = `
+        <p>⚠️ লগইন হয়নি। Telegram Mini App থেকে ওপেন করো।</p>
+      `;
+    }
+  </script>
 </body>
 </html>
