@@ -1,88 +1,111 @@
-<!-- game.html -->
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Banana Pop</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Monetag / Ad placeholder script loads on host -->
-  <script async src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
+  <meta charset="UTF-8">
+  <title>Bubble Pop Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      text-align: center;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      background: rgba(0,0,0,0.5);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+    #gameOver {
+      display: none;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 28px;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffeb3b, #fbc02d);
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <div class="card center">
-    <h2>🎮 Banana Pop</h2>
-    <div id="scoreWrap" style="margin-top:8px">
-      <span id="scoreLabel">Score: 0</span> &nbsp; <span id="coinLabel">Coins: 0</span>
-    </div>
-    <canvas id="gameCanvas" width="360" height="460" style="margin-top:12px; display:block;"></canvas>
-
-    <div id="adBanner" style="margin-top:12px; height:90px; border-radius:10px; border:1px solid #eef7ff; display:flex; align-items:center; justify-content:center;">
-      <small class="small">Ad area (Monetag / Adsterra only on live host)</small>
-    </div>
-    <p class="small">Tip: Click the falling bananas to pop & earn coins</p>
+  <div id="score">Score: 0</div>
+  <div id="gameOver">
+    <p>🎮 Game Over!</p>
+    <p id="finalScore"></p>
+    <button onclick="restartGame()">Play Again</button>
   </div>
 
-  <script type="module">
-    import './app.js';
-    // get user
-    const user = window.appHelpers.getTelegramUser();
-    const id = user?.id || localStorage.getItem('guest_user');
+  <!-- Monetag SDK -->
+  <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
 
-    // ensure user doc
-    await window.appHelpers.ensureUserDoc(id, { name: user?.first_name, username: user?.username });
+  <script>
+    let score = 0;
+    let gameInterval;
+    let gameDuration = 15000; // 15 সেকেন্ড
+    let gameActive = true;
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreLabel = document.getElementById('scoreLabel');
-    const coinLabel = document.getElementById('coinLabel');
+    function createBubble() {
+      if (!gameActive) return;
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      const size = Math.random() * 40 + 30;
+      bubble.style.width = size + "px";
+      bubble.style.height = size + "px";
+      bubble.style.top = Math.random() * (window.innerHeight - size) + "px";
+      bubble.style.left = Math.random() * (window.innerWidth - size) + "px";
 
-    let bananas = [], score = 0, coins = await window.appHelpers.getUserCoins(id);
-
-    coinLabel.innerText = 'Coins: ' + coins;
-
-    function spawn() {
-      const x = Math.random()*(canvas.width-40)+20;
-      bananas.push({x,y:-30,size:40, speed:2+Math.random()*2});
-    }
-    function draw() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      bananas.forEach((b,i)=> {
-        b.y += b.speed;
-        ctx.beginPath();
-        ctx.fillStyle = 'yellow';
-        ctx.ellipse(b.x, b.y, b.size/2, b.size/2, 0,0,Math.PI*2);
-        ctx.fill();
-        ctx.closePath();
-        if(b.y>canvas.height+50) bananas.splice(i,1);
+      bubble.addEventListener("click", () => {
+        score++;
+        document.getElementById("score").innerText = "Score: " + score;
+        bubble.remove();
       });
-      requestAnimationFrame(draw);
+
+      document.body.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 3000);
     }
 
-    canvas.addEventListener('click', async (e)=>{
-      const rect = canvas.getBoundingClientRect();
-      const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
-      for(let i=bananas.length-1;i>=0;i--){
-        const b = bananas[i];
-        const dist = Math.hypot(cx-b.x, cy-b.y);
-        if(dist < b.size/1.5){
-          bananas.splice(i,1);
-          score++;
-          scoreLabel.innerText = 'Score: ' + score;
-          coins += 5; // reward per banana
-          coinLabel.innerText = 'Coins: ' + coins;
-          // credit to firebase
-          await window.appHelpers.addCoinsToUser(id, 5);
-          // show monetag ad occasionally
-          if(score % 10 === 0 && typeof Monetag !== 'undefined' && Monetag.show_9931551) {
-            try { Monetag.show_9931551(); } catch(e) { console.warn(e); }
-          }
-        }
-      }
-    });
+    function startGame() {
+      score = 0;
+      document.getElementById("score").innerText = "Score: 0";
+      document.getElementById("gameOver").style.display = "none";
+      gameActive = true;
+      gameInterval = setInterval(createBubble, 700);
 
-    setInterval(spawn, 900);
-    draw();
+      setTimeout(endGame, gameDuration);
+    }
+
+    function endGame() {
+      gameActive = false;
+      clearInterval(gameInterval);
+      document.getElementById("finalScore").innerText = "Your Score: " + score;
+      document.getElementById("gameOver").style.display = "block";
+
+      // গেম শেষ হলে Monetag Ad শো করো
+      if (typeof show_9931551 !== "undefined") {
+        show_9931551();
+      }
+    }
+
+    function restartGame() {
+      startGame();
+    }
+
+    // গেম শুরু
+    startGame();
   </script>
 </body>
 </html>
