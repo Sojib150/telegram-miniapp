@@ -1,128 +1,62 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>প্রোফাইল</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #f5f7fb;
-      margin: 0;
-      padding: 0;
-    }
-    .profile-container {
-      max-width: 400px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    .avatar {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      margin-bottom: 15px;
-      border: 3px solid #4cafef;
-    }
-    .name {
-      font-size: 22px;
-      font-weight: bold;
-      color: #333;
-    }
-    .username {
-      font-size: 15px;
-      color: #777;
-      margin-bottom: 20px;
-    }
-    .balance-card {
-      background: linear-gradient(135deg, #4cafef, #6a11cb);
-      color: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      font-size: 18px;
-      margin-bottom: 20px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    }
-    .back-btn {
-      background: #4cafef;
-      color: white;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    .back-btn:hover {
-      background: #3895d3;
-    }
-  </style>
+  <title>Profile</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="profile-container">
-    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" class="avatar" id="avatar">
-    <div class="name" id="name">Loading...</div>
-    <div class="username" id="username">@username</div>
-    <div class="balance-card">
-      💰 ব্যালেন্স: <span id="balance">0</span> কয়েন
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white shadow-lg rounded-2xl p-6 w-80 text-center">
+    <img id="userPic" class="w-20 h-20 rounded-full mx-auto border-4 border-yellow-400" src="" alt="Profile">
+    <h2 id="userName" class="mt-3 text-xl font-bold text-gray-800">Loading...</h2>
+    <p id="userId" class="text-gray-500 text-sm">ID: ...</p>
+    <div class="mt-4 p-3 bg-yellow-100 rounded-xl">
+      <p class="text-gray-700 font-semibold">💰 Coins</p>
+      <h3 id="coinBalance" class="text-2xl font-bold text-yellow-600">0</h3>
     </div>
-    <button class="back-btn" onclick="window.location.href='index.html'">⬅️ হোমে যান</button>
   </div>
 
-  <!-- Telegram API -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
-  <!-- Firebase SDK -->
-  <script type="module">
-    // Firebase Import
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+    authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+    projectId: "telegram-miniapp-e8cc0",
+    storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+    messagingSenderId: "827930913054",
+    appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+  };
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    // তোমার Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-    };
+  // Telegram User Data
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  const user = tg.initDataUnsafe?.user;
 
-    // Firebase Init
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // Telegram থেকে ইউজার ডেটা আনা
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    const user = tg.initDataUnsafe?.user;
-
-    let userId = "guest"; // fallback
-    if (user) {
-      document.getElementById("name").innerText = user.first_name + " " + (user.last_name || "");
-      document.getElementById("username").innerText = "@" + (user.username || "unknown");
-      document.getElementById("avatar").src = user.photo_url || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-      userId = user.id; // Telegram user id কে key হিসেবে ব্যবহার
+  if(user){
+    document.getElementById("userName").innerText = user.first_name + (user.last_name ? " " + user.last_name : "");
+    document.getElementById("userId").innerText = "ID: " + user.id;
+    if(user.photo_url){
+      document.getElementById("userPic").src = user.photo_url;
+    } else {
+      document.getElementById("userPic").src = "https://i.pravatar.cc/100"; // fallback avatar
     }
 
-    // Firebase থেকে কয়েন লোড করা
-    async function loadBalance() {
-      const ref = doc(db, "users", String(userId));
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        document.getElementById("balance").innerText = snap.data().coins || 0;
+    // Load Coin Balance
+    db.collection("users").doc(user.id.toString()).get().then(doc=>{
+      if(doc.exists){
+        document.getElementById("coinBalance").innerText = doc.data().coins || 0;
       } else {
-        // নতুন ইউজার হলে ডিফল্ট কয়েন 0 সেট করা হবে
-        await setDoc(ref, { coins: 0, name: user?.first_name || "Guest" });
-        document.getElementById("balance").innerText = 0;
+        db.collection("users").doc(user.id.toString()).set({coins:0});
+        document.getElementById("coinBalance").innerText = 0;
       }
-    }
-
-    loadBalance();
-  </script>
+    });
+  }
+</script>
 </body>
 </html>
