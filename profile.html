@@ -4,36 +4,95 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
+  <style>
+    body {
+      background: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .profile-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 30px auto;
+      width: 90%;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .profile-card img {
+      width: 100px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
-<body class="app-body">
+<body>
 
-  <header class="header">
-    <h1>👤 Profile</h1>
-  </header>
+  <header>🙍 Profile</header>
 
-  <main class="content">
-    <div class="card">
-      <h2>আপনার প্রোফাইল</h2>
-      <p><strong>নাম:</strong> <span id="userName">Loading...</span></p>
-      <p><strong>Telegram ID:</strong> <span id="userId">Loading...</span></p>
-      <p><strong>মোট কয়েন:</strong> <span id="userCoins">0</span></p>
-    </div>
-  </main>
-
-  <nav class="bottom-nav">
-    <a href="index.html" class="nav-btn">🏠 Home</a>
-    <a href="ads.html" class="nav-btn">🎁 Ads</a>
-    <a href="game.html" class="nav-btn">🎮 Game</a>
-    <a href="profile.html" class="nav-btn active">👤 Profile</a>
-    <a href="withdraw.html" class="nav-btn">💳 Withdraw</a>
-  </nav>
+  <div class="profile-card">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" id="userPic" alt="profile">
+    <h4 id="userName">Loading...</h4>
+    <p>@<span id="userUsername">-</span></p>
+    <p>User ID: <span id="userId">-</span></p>
+    <hr>
+    <p>💰 Coins: <b id="coinCount">0</b></p>
+  </div>
 
   <script>
-    // Future: Firebase থেকে অটো নাম / Telegram Login API বসবে
-    document.getElementById("userName").innerText = "Demo User";
-    document.getElementById("userId").innerText = "@demo123";
-    document.getElementById("userCoins").innerText = "150";
+    // ================= Firebase Init =================
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ================= Telegram Auto Login =================
+    let tg = window.Telegram?.WebApp;
+    let userId = "demoUser";
+
+    if (tg && tg.initDataUnsafe?.user) {
+      let user = tg.initDataUnsafe.user;
+      userId = user.id.toString();
+      document.getElementById("userName").innerText = user.first_name + " " + (user.last_name || "");
+      document.getElementById("userUsername").innerText = user.username || "unknown";
+      document.getElementById("userId").innerText = user.id;
+      document.getElementById("userPic").src = user.photo_url || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    } else {
+      // fallback demo
+      document.getElementById("userName").innerText = "Guest User";
+      document.getElementById("userUsername").innerText = "guest";
+      document.getElementById("userId").innerText = "0000";
+    }
+
+    // ================= Load Coins =================
+    async function getCoins() {
+      const doc = await db.collection("users").doc(userId).get();
+      if (doc.exists) {
+        document.getElementById("coinCount").innerText = doc.data().coins || 0;
+      } else {
+        document.getElementById("coinCount").innerText = 0;
+      }
+    }
+    getCoins();
   </script>
 
 </body>
