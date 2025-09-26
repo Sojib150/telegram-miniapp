@@ -1,3 +1,4 @@
+/* General Style */
 body.app-body {
   margin: 0;
   font-family: "Poppins", sans-serif;
@@ -5,48 +6,68 @@ body.app-body {
   color: #fff;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.container {
-  width: 90%;
-  max-width: 400px;
+/* Header */
+.header {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
   text-align: center;
+  backdrop-filter: blur(8px);
+}
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
 }
 
-.title {
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-  font-weight: bold;
+/* Content */
+.content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.1);
   padding: 20px;
   border-radius: 15px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0px 6px 15px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+.card h2 {
+  margin-bottom: 10px;
+}
+.card ul {
+  text-align: left;
+  padding-left: 20px;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(0,0,0,0.4);
+  padding: 10px 0;
   backdrop-filter: blur(10px);
-  margin-bottom: 20px;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
+  border-top: 1px solid rgba(255,255,255,0.2);
 }
-
-.btn-primary {
-  background: #ff7eb3;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 25px;
+.nav-btn {
   color: #fff;
+  text-decoration: none;
   font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  flex: 1;
+  text-align: center;
+  padding: 8px 0;
 }
-.btn-primary:hover {
-  background: #ff5277;
-}
-
-.reward-box {
-  background: rgba(0,0,0,0.3);
-  padding: 15px;
-  border-radius: 12px;
-  font-size: 1.2rem;
+.nav-btn.active {
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
 }
