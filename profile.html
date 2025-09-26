@@ -1,99 +1,93 @@
+<!-- save as profile.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profile — Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {
-      background: #f5f7fa;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    header {
-      background: #007bff;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-    }
-    .profile-card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      margin: 30px auto;
-      width: 90%;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    .profile-card img {
-      width: 100px;
-      border-radius: 50%;
-      margin-bottom: 15px;
-    }
+    body{margin:0;font-family:Inter,Arial;background:linear-gradient(180deg,#6a11cb,#2575fc);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+    .card{background:rgba(255,255,255,0.08);backdrop-filter:blur(6px);border-radius:14px;padding:20px;width:92%;max-width:420px;margin-top:40px;box-shadow:0 12px 30px rgba(0,0,0,0.18)}
+    .avatar{width:96px;height:96px;border-radius:20px;object-fit:cover;border:3px solid rgba(255,255,255,0.18)}
+    .name{font-weight:700;font-size:20px;margin-top:12px}
+    .meta{color:rgba(255,255,255,0.8);margin-bottom:6px}
+    .coin{margin-top:12px;background:rgba(255,255,255,0.12);padding:12px;border-radius:10px;font-weight:700}
+    .btn{margin-top:12px;padding:10px 16px;border-radius:10px;border:0;background:#ffd166;color:#1f2937;font-weight:700;cursor:pointer}
   </style>
+  <!-- firebase helpers (same file) -->
+  <script src="firebase.js"></script>
 </head>
 <body>
+  <div class="card" id="profileCard">
+    <img id="avatar" class="avatar" src="https://i.pravatar.cc/200" alt="avatar">
+    <div class="name" id="name">Loading...</div>
+    <div class="meta" id="username">@username</div>
+    <div class="coin">💰 Coins: <span id="coins">0</span></div>
 
-  <header>🙍 Profile</header>
-
-  <div class="profile-card">
-    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" id="userPic" alt="profile">
-    <h4 id="userName">Loading...</h4>
-    <p>@<span id="userUsername">-</span></p>
-    <p>User ID: <span id="userId">-</span></p>
-    <hr>
-    <p>💰 Coins: <b id="coinCount">0</b></p>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn" id="watchBtn">Watch Ad +10</button>
+      <button class="btn" id="withdrawBtn">Withdraw</button>
+    </div>
   </div>
 
+  <script src="ads.js"></script>
   <script>
-    // ================= Firebase Init =================
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const tg = window.Telegram?.WebApp;
+    if(tg) tg.ready();
 
-    // ================= Telegram Auto Login =================
-    let tg = window.Telegram?.WebApp;
-    let userId = "demoUser";
+    (async ()=>{
+      // wait for firebase helpers
+      function wait() { return new Promise(res => {
+        const st = setInterval(()=>{ if(window.appHelpers){ clearInterval(st); res(); } },80);
+      }); }
+      await wait();
 
-    if (tg && tg.initDataUnsafe?.user) {
-      let user = tg.initDataUnsafe.user;
-      userId = user.id.toString();
-      document.getElementById("userName").innerText = user.first_name + " " + (user.last_name || "");
-      document.getElementById("userUsername").innerText = user.username || "unknown";
-      document.getElementById("userId").innerText = user.id;
-      document.getElementById("userPic").src = user.photo_url || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-    } else {
-      // fallback demo
-      document.getElementById("userName").innerText = "Guest User";
-      document.getElementById("userUsername").innerText = "guest";
-      document.getElementById("userId").innerText = "0000";
-    }
+      const user = tg?.initDataUnsafe?.user || null;
+      const userId = user?.id ? String(user.id) : ("guest_"+localStorage.getItem('guest_id') || (function(){ const g=Date.now(); localStorage.setItem('guest_id', g); return g; })());
 
-    // ================= Load Coins =================
-    async function getCoins() {
-      const doc = await db.collection("users").doc(userId).get();
-      if (doc.exists) {
-        document.getElementById("coinCount").innerText = doc.data().coins || 0;
+      // ensure user in Firestore
+      await window.appHelpers.ensureUserDoc(userId, user || { name: 'Guest' });
+
+      // update UI
+      if(user){
+        document.getElementById('name').innerText = (user.first_name || '') + (user.last_name ? ' '+user.last_name : '');
+        document.getElementById('username').innerText = user.username ? '@'+user.username : '';
+        if(user.photo_url) document.getElementById('avatar').src = user.photo_url;
       } else {
-        document.getElementById("coinCount").innerText = 0;
+        document.getElementById('name').innerText = 'Guest';
       }
-    }
-    getCoins();
-  </script>
 
+      // realtime coins
+      window.appHelpers.onUserSnapshot(userId, snap => {
+        if(!snap.exists) return;
+        document.getElementById('coins').innerText = snap.data().coins || 0;
+      });
+
+      document.getElementById('watchBtn').addEventListener('click', async () => {
+        try{
+          await window.MiniAds.showRewardedFor(userId, 10);
+          alert("✅ 10 coins added");
+        }catch(e){ console.warn(e); alert("Ad not available"); }
+      });
+
+      document.getElementById('withdrawBtn').addEventListener('click', ()=> {
+        const name = prompt("বিকাশ নাম্বার নিবেন? আপনার নাম লিখুন:");
+        if(!name) return;
+        const number = prompt("বিকাশ নাম্বার লিখুন (01xxxxxxxxx):");
+        if(!number) return;
+        (async ()=>{
+          const coins = await window.appHelpers.getCoins(userId);
+          if(coins < 1000){ alert("ন্যূনতম 1000 কয়েন লাগবে (100 TK)"); return; }
+          const amountTk = Math.floor(coins/1000)*100;
+          await window.appHelpers.createWithdrawRequest(userId, name, number, coins, amountTk);
+          // set user's coins remainder
+          const remain = coins % 1000;
+          await window.appHelpers.db.collection('users').doc(userId).update({ coins: remain });
+          alert("✅ Withdraw request sent for "+amountTk+" TK");
+        })();
+      });
+    })();
+  </script>
 </body>
 </html>
