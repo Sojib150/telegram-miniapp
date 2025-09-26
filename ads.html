@@ -1,45 +1,60 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>বিজ্ঞাপন</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f7f9fc;
-      color: #333;
-      margin: 0;
-      padding: 20px;
-    }
-    h2 {
-      margin-bottom: 15px;
-      color: #222;
-    }
-    .ad-box {
-      margin: 20px auto;
-      padding: 15px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      max-width: 350px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .loading {
-      font-size: 14px;
-      color: #666;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <h2>🎉 আপনার জন্য বিজ্ঞাপন লোড হচ্ছে...</h2>
+// ads.js
+// include after Monetag SDK script (in head).
+// <script async src="https://alwingulla.com/88/tag.min.js" data-zone="9931551" data-cfasync="false"></script>
+// <script src="ads.js"></script>
 
-  <div class="ad-box">
-    <!-- Monetag Ad -->
-    <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
-    <p class="loading">অনুগ্রহ করে ১৫ সেকেন্ড অপেক্ষা করুন ⏳</p>
-  </div>
-</body>
-</html>
+function rewardUserCoins(amount = 10, userId = null) {
+  // prefer firebase helper if available
+  try {
+    userId = userId || (window.appHelpers && window.appHelpers.getTelegramUser && window.appHelpers.getTelegramUser()?.id) || localStorage.getItem('guest_user');
+    if (window.appHelpers && window.appHelpers.addCoinsToUser) {
+      window.appHelpers.addCoinsToUser(userId, amount);
+    } else {
+      // fallback local
+      let c = parseInt(localStorage.getItem('coins') || 0);
+      c += amount;
+      localStorage.setItem('coins', c);
+    }
+  } catch (e) {
+    console.warn('rewardUserCoins error', e);
+  }
+}
+
+// Rewarded Interstitial
+function showRewardedInterstitial() {
+  if (typeof show_9931551 !== 'function') {
+    console.warn('Monetag SDK not loaded');
+    return Promise.reject('Monetag missing');
+  }
+  return show_9931551().then(() => {
+    rewardUserCoins(10);
+  });
+}
+
+// Rewarded Popup
+function showRewardedPopup() {
+  if (typeof show_9931551 !== 'function') return Promise.reject('Monetag missing');
+  return show_9931551('pop').then(() => {
+    rewardUserCoins(10);
+  });
+}
+
+// In-App Interstitial (auto)
+function initInAppInterstitial() {
+  if (typeof show_9931551 !== 'function') {
+    console.warn('Monetag SDK not loaded');
+    return;
+  }
+  show_9931551({
+    type: 'inApp',
+    inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+  });
+}
+
+// export globally
+window.ADS = {
+  showRewardedInterstitial,
+  showRewardedPopup,
+  initInAppInterstitial,
+  rewardUserCoins
+};
