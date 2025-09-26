@@ -1,32 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Withdraw</title>
-  <!-- Monetag SDK -->
-  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
-  <style>
-    body { font-family: Arial; background: #f9f9f9; text-align: center; }
-    .form-box { margin: 20px auto; padding: 20px; max-width: 350px; background: #fff; border-radius: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
-    input, button { width: 90%; margin: 10px 0; padding: 12px; border-radius: 6px; border: 1px solid #ccc; }
-    button { background: #4CAF50; color: #fff; border: none; }
-  </style>
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 </head>
 <body>
-  <h2>💵 Withdraw Coins</h2>
-  <div class="form-box">
-    <input type="text" placeholder="Enter Bkash Number">
-    <input type="text" placeholder="Enter Your Name">
-    <button onclick="requestWithdraw()">Withdraw</button>
+  <div class="container">
+    <h2>💵 Withdraw Coins</h2>
+    <form id="withdrawForm">
+      <input type="text" id="name" placeholder="আপনার নাম" required>
+      <input type="text" id="bkash" placeholder="বিকাশ নাম্বার" required>
+      <button type="submit">Withdraw</button>
+    </form>
+    <p id="status"></p>
   </div>
 
   <script>
-    function requestWithdraw() {
-      alert("✅ Withdraw request sent!");
-      show_9931551().then(() => {
-        console.log("Ad after withdraw request");
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+      projectId: "telegram-miniapp-e8cc0",
+      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+      messagingSenderId: "827930913054",
+      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const userId = "demoUser123";
+
+    document.getElementById("withdrawForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const bkash = document.getElementById("bkash").value;
+
+      await db.collection("withdraws").add({
+        userId, name, bkash, time: new Date()
       });
-    }
+      document.getElementById("status").innerText = "✅ Withdraw request sent!";
+    });
   </script>
 </body>
 </html>
