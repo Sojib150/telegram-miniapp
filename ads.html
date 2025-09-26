@@ -1,40 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Earn Coins - Ads</title>
-  <link rel="stylesheet" href="style.css"/>
-  <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earn from Ads</title>
+  <link rel="stylesheet" href="style.css">
+  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
 </head>
 <body class="app-body">
 
-  <div class="container">
-    <h1 class="title">🎁 Watch Ads & Earn Coins</h1>
+  <!-- Header -->
+  <header class="header">
+    <h1>🎁 Earn from Ads</h1>
+  </header>
 
+  <!-- Main Content -->
+  <main class="content">
     <div class="card">
-      <p>Click the button below and watch the full ad to earn rewards.</p>
-      <button id="watchAdBtn" class="btn-primary">▶ Watch Ad</button>
+      <h2>বিজ্ঞাপন দেখে আয় করুন</h2>
+      <p>প্রতিবার বিজ্ঞাপন দেখার পর আপনি কয়েন পাবেন।</p>
+      <button onclick="watchAd()" class="btn">▶ বিজ্ঞাপন দেখুন</button>
     </div>
+  </main>
 
-    <div class="reward-box">
-      <h2>Your Coins: <span id="coinBalance">0</span></h2>
-    </div>
-  </div>
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-btn">🏠 Home</a>
+    <a href="ads.html" class="nav-btn active">🎁 Ads</a>
+    <a href="game.html" class="nav-btn">🎮 Game</a>
+    <a href="profile.html" class="nav-btn">👤 Profile</a>
+    <a href="withdraw.html" class="nav-btn">💳 Withdraw</a>
+  </nav>
 
-  <script src="firebase.js"></script>
   <script>
-    let coins = 0;
-
-    document.getElementById('watchAdBtn').addEventListener('click', () => {
+    function watchAd() {
       show_9931551().then(() => {
-        coins += 10; // প্রতি এড দেখলে 10 কয়েন
-        document.getElementById('coinBalance').innerText = coins;
-        alert("✅ Congrats! You earned 10 coins.");
+        alert("✅ বিজ্ঞাপন দেখার জন্য ধন্যবাদ! আপনি 10 কয়েন পেয়েছেন।");
+        // এখানে কয়েন Firebase-এ যোগ করার কোড বসানো হবে
       }).catch(() => {
-        alert("⚠ Ad failed to load. Try again.");
+        alert("⚠ বিজ্ঞাপন লোড হয়নি। আবার চেষ্টা করুন।");
       });
-    });
+    }
   </script>
+
 </body>
 </html>
