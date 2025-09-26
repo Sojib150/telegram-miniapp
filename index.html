@@ -1,148 +1,161 @@
+<!-- save as index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini App - Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>telegram-miniapp — Dashboard</title>
 
-  <!-- Monetag SDK -->
+  <!-- Monetag SDK: must be in HEAD -->
   <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <!-- Telegram WebApp -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+  <!-- Style (simple, clean) -->
   <style>
-    body {
-      background: #f5f7fa;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    header {
-      background: #007bff;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .content {
-      padding: 20px;
-      text-align: center;
-    }
-    .task-box {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #fff;
-      border-top: 1px solid #ddd;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-    }
-    .bottom-nav button {
-      border: none;
-      background: none;
-      font-size: 14px;
-      color: #007bff;
-    }
+    :root{--accent:#2b7cff;--card:#fff}
+    body{margin:0;font-family:Inter,system-ui,Arial;background:linear-gradient(180deg,#f4f7ff,#ffffff);color:#0f172a}
+    header{background:var(--accent);color:#fff;padding:14px 16px;text-align:center;font-weight:700}
+    .container{max-width:420px;margin:18px auto;padding:0 12px}
+    .card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,60,0.06)}
+    .title{font-size:18px;margin-bottom:8px}
+    .small{color:#6b7280;font-size:13px}
+    .btn{display:inline-block;width:100%;padding:12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;margin-top:8px}
+    .btn.secondary{background:#06b6d4}
+    .footer-nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;padding:8px 0}
+    .nav-btn{font-size:14px;color:var(--accent);background:none;border:0}
   </style>
+
+  <!-- Firebase helpers (compat) -->
+  <script src="firebase.js"></script>
+  <!-- Ads wrapper -->
+  <script src="ads.js"></script>
 </head>
 <body>
+  <header>📊 Mini Earn App</header>
 
-  <header>📊 Dashboard</header>
-
-  <div class="content">
-    <h4 id="welcomeText">Welcome User 👋</h4>
-    <p>Your Coins: <b id="coinCount">0</b></p>
-
-    <div class="task-box">
-      <h5>👉 Task 1: Watch Ads</h5>
-      <button class="btn btn-success" onclick="showRewarded()">Watch & Earn</button>
+  <div class="container">
+    <div class="card">
+      <div class="title">স্বাগতম</div>
+      <div class="small">Telegram-এর মাধ্যমে অটো-লগইন হবে এবং তুমি কাজ করে কয়েন জিততে পারবে।</div>
     </div>
 
-    <div class="task-box">
-      <h5>👉 Task 2: Play Game</h5>
-      <button class="btn btn-primary" onclick="showInterstitial()">Play & Earn</button>
+    <div class="card" id="profileCard">
+      <div style="display:flex;gap:12px;align-items:center">
+        <img id="avatar" src="https://i.pravatar.cc/100" style="width:68px;height:68px;border-radius:14px;object-fit:cover"/>
+        <div>
+          <div id="displayName" style="font-weight:700">লোড হচ্ছে...</div>
+          <div id="displayUsername" class="small">@username</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="small">কয়েন ব্যালান্স</div>
+        <div id="coinCount" style="font-weight:800;font-size:20px">0</div>
+      </div>
     </div>
 
-    <div class="task-box">
-      <h5>👉 Task 3: Invite Friends</h5>
-      <button class="btn btn-warning">Invite Now</button>
+    <div class="card">
+      <div class="title">কাজসমূহ</div>
+      <div class="small">প্রতিদিন বিজ্ঞাপন দেখো, গেম খেলো, বন্ধু আনো — কয়েন বাড়াও।</div>
+
+      <button class="btn" id="watchAdBtn">▶︎ Watch Ad (10 coins)</button>
+      <button class="btn secondary" id="playGameBtn">🎮 Play Game (5 coins)</button>
+      <button class="btn" id="inviteBtn" style="margin-top:6px;background:#f59e0b">👥 Invite</button>
     </div>
   </div>
 
-  <div class="bottom-nav">
-    <button onclick="goHome()">🏠 Home</button>
-    <button onclick="showRewarded()">🎬 Ads</button>
-    <button onclick="showInterstitial()">🎮 Games</button>
-    <button>👥 Invite</button>
-    <button>🙍 Profile</button>
+  <div class="footer-nav">
+    <button class="nav-btn" onclick="location.href='index.html'">🏠 Home</button>
+    <button class="nav-btn" onclick="location.href='ads.html'">🎁 Ads</button>
+    <button class="nav-btn" onclick="location.href='game.html'">🎮 Game</button>
+    <button class="nav-btn" onclick="location.href='profile.html'">👤 Profile</button>
+    <button class="nav-btn" onclick="location.href='withdraw.html'">💳 Withdraw</button>
   </div>
 
   <script>
-    // ================= Firebase Init =================
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // ডেমো হিসেবে ইউজার আইডি (পরে Telegram থেকে নিতে পারো)
-    let userId = "demoUser";
-
-    // ================= Coin System =================
-    async function getCoins() {
-      const doc = await db.collection("users").doc(userId).get();
-      if (doc.exists) {
-        document.getElementById("coinCount").innerText = doc.data().coins || 0;
-      } else {
-        document.getElementById("coinCount").innerText = 0;
-      }
-    }
-
-    function addCoins(amount) {
-      db.collection("users").doc(userId).set({
-        coins: firebase.firestore.FieldValue.increment(amount)
-      }, { merge: true }).then(() => {
-        getCoins();
+    // Wait for firebase helpers to be ready
+    function waitForHelpers(timeout = 5000){
+      return new Promise((res, rej) => {
+        const start = Date.now();
+        (function check(){
+          if(window.appHelpers) return res(window.appHelpers);
+          if(Date.now() - start > timeout) return rej("appHelpers not found");
+          setTimeout(check, 100);
+        })();
       });
     }
 
-    // প্রথমবার কয়েন লোড
-    getCoins();
+    // Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if(tg) tg.ready();
 
-    // ================= Monetag Ads =================
-    function showRewarded() {
-      show_9931551().then(() => {
-        addCoins(10); // ✅ 10 Coins
-        alert("🎉 You earned 10 coins!");
-      }).catch(e => console.log(e));
-    }
+    (async ()=>{
+      try{
+        await waitForHelpers();
+      }catch(e){ console.warn(e); }
 
-    function showInterstitial() {
-      show_9931551({ type: 'inApp' });
-      addCoins(5); // ✅ 5 Coins
-    }
+      // get telegram user if inside Telegram WebApp
+      let user = null;
+      try { user = tg?.initDataUnsafe?.user || null; } catch(e){ user = null; }
+      const userId = user?.id ? String(user.id) : ("guest_"+localStorage.getItem('guest_id') || (function(){ const g=Date.now(); localStorage.setItem('guest_id', g); return g; })());
 
-    function goHome() {
-      alert("🏠 Home Page");
-    }
+      // ensure user doc in firestore
+      if(window.appHelpers) await window.appHelpers.ensureUserDoc(userId, user || { name: "Guest" });
+
+      // update UI
+      if(user){
+        document.getElementById('displayName').innerText = (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
+        document.getElementById('displayUsername').innerText = user.username ? '@' + user.username : '';
+        if(user.photo_url) document.getElementById('avatar').src = user.photo_url;
+      } else {
+        document.getElementById('displayName').innerText = 'Guest';
+        document.getElementById('displayUsername').innerText = '';
+      }
+
+      // show coins realtime
+      if(window.appHelpers){
+        window.appHelpers.onUserSnapshot(userId, snap => {
+          if(!snap.exists) return;
+          const data = snap.data();
+          document.getElementById('coinCount').innerText = data.coins || 0;
+        });
+      }
+
+      // Buttons
+      document.getElementById('watchAdBtn').addEventListener('click', async () => {
+        if(!window.MiniAds){ alert("Ads not ready"); return; }
+        try{
+          await window.MiniAds.showRewardedFor(userId, 10);
+          alert("✅ 10 coins added");
+        }catch(e){
+          console.error(e);
+          alert("Ad failed or not available");
+        }
+      });
+
+      document.getElementById('playGameBtn').addEventListener('click', async () => {
+        // simple flow: open game page (or inline game). Here we simulate +5 coins after showing a rewarded popup.
+        if(window.MiniAds) {
+          try{
+            await window.MiniAds.showPopupFor(userId, 5);
+            alert("✅ 5 coins added from game");
+          }catch(e){ console.warn(e); alert("Ad not available"); }
+        } else {
+          alert("Play game (demo) — +5 coins");
+          if(window.appHelpers) window.appHelpers.addCoins(userId, 5);
+        }
+      });
+
+      document.getElementById('inviteBtn').addEventListener('click', () => {
+        const link = location.origin + location.pathname.replace(/\/[^/]*$/,'') + '/?ref=' + userId;
+        navigator.clipboard.writeText(link).then(()=> alert("Invite link copied"));
+      });
+
+      // init inApp interstitial auto
+      if(window.MiniAds && typeof window.MiniAds.initInApp === 'function') window.MiniAds.initInApp();
+    })();
   </script>
-
 </body>
 </html>
