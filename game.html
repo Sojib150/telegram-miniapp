@@ -1,28 +1,32 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>গেমস - বেলুন ফাটাও 🎈</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Game</title>
+  <!-- Monetag SDK -->
+  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
   <style>
-    #gameCanvas {
-      border: 2px solid #333;
-      display: block;
-      margin: 20px auto;
-      background: linear-gradient(to top, #87CEEB, #ffffff);
-    }
-    #score {
-      text-align: center;
-      font-size: 20px;
-      margin-top: 10px;
-    }
+    body { font-family: Arial; text-align: center; background: #fffbe6; }
+    canvas { border: 2px solid #333; margin-top: 20px; }
+    .btn { margin-top: 15px; padding: 12px 20px; background: #ff9800; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center">🎈 বেলুন ফাটাও 🎮</h2>
-  <canvas id="gameCanvas" width="400" height="500"></canvas>
-  <div id="score">স্কোর: 0</div>
+  <h2>🍌 Banana Catch Game 🍌</h2>
+  <canvas id="gameCanvas" width="300" height="400"></canvas>
+  <button class="btn" onclick="showRewardedAd()">Get Rewarded Ad</button>
 
-  <script src="game.js"></script>
+  <script>
+    // সাধারণ গেম লজিক (ডেমো)
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.fillText("🎮 Game Running...", 90, 200);
+
+    function showRewardedAd() {
+      show_9931551('pop').then(() => {
+        alert("🎁 You earned bonus coins from ad!");
+      }).catch(e => console.log("Ad Error:", e));
+    }
+  </script>
 </body>
 </html>
