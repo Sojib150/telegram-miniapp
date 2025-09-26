@@ -1,28 +1,52 @@
-body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #1a73e8, #673ab7);
+body.app-body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: #fff;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  margin: 0;
-  color: white;
 }
+
+.container {
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
 .card {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   padding: 20px;
   border-radius: 15px;
-  text-align: center;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  margin-bottom: 20px;
+  box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
 }
-button {
-  padding: 10px 20px;
+
+.btn-primary {
+  background: #ff7eb3;
   border: none;
-  background: #ffca28;
-  border-radius: 10px;
-  font-size: 16px;
+  padding: 12px 20px;
+  border-radius: 25px;
+  color: #fff;
+  font-size: 1rem;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
-button:hover {
-  background: #ffc107;
+.btn-primary:hover {
+  background: #ff5277;
+}
+
+.reward-box {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 1.2rem;
 }
