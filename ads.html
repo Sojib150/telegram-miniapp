@@ -2,25 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ads</title>
-  <!-- Monetag SDK -->
-  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; }
-    .btn { background: #4CAF50; color: white; padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; }
-    .btn:hover { background: #45a049; }
-  </style>
+  <title>Ads + Coins</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-  <h2>🎉 Earn Coins by Watching Ads 🎉</h2>
-  <button class="btn" onclick="showAd()">Watch Ad & Earn</button>
+<body style="font-family: Arial, sans-serif; text-align:center; background:#f4f4f4;">
+
+  <h1>🔥 Earn Coins by Watching Ads 🔥</h1>
+  <p>Your Coins: <span id="coinCount">0</span></p>
+
+  <!-- Ad Container -->
+  <div id="adContainer" style="margin:20px; padding:20px; border:2px dashed #333;">
+    <h2>Ad will load here 👇</h2>
+    <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
+  </div>
+
+  <button onclick="rewardUser()" style="padding:15px 30px; font-size:18px; border:none; background:#28a745; color:#fff; border-radius:8px; cursor:pointer;">
+    ✅ Claim Reward (After Watching Ad)
+  </button>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 
   <script>
-    function showAd() {
-      show_9931551().then(() => {
-        alert("✅ You earned 10 coins!");
-        // এখানে কয়েন বাড়ানোর ফাংশন বসবে
-      }).catch(e => console.log("Ad Error:", e));
+    // ✅ তোমার Firebase Config এখানে বসাও
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-app.firebaseapp.com",
+      projectId: "your-app",
+      storageBucket: "your-app.appspot.com",
+      messagingSenderId: "XXXXXXX",
+      appId: "1:XXXXXXX:web:XXXXXXXX"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let userId = null;
+    let coinCountEl = document.getElementById("coinCount");
+
+    // 🔹 Anonymous Login
+    auth.signInAnonymously().then(user => {
+      userId = user.user.uid;
+
+      // Check if user exists
+      db.collection("users").doc(userId).get().then(doc => {
+        if (!doc.exists) {
+          db.collection("users").doc(userId).set({ coins: 0 });
+          coinCountEl.textContent = "0";
+        } else {
+          coinCountEl.textContent = doc.data().coins;
+        }
+      });
+    });
+
+    // 🔹 Reward Function
+    function rewardUser() {
+      if (!userId) return;
+
+      const userRef = db.collection("users").doc(userId);
+      userRef.update({
+        coins: firebase.firestore.FieldValue.increment(10)
+      });
+
+      userRef.get().then(doc => {
+        coinCountEl.textContent = doc.data().coins;
+      });
+
+      alert("🎉 You earned 10 coins!");
     }
   </script>
 </body>
