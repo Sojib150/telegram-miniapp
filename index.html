@@ -1,71 +1,20 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Earn App - Home</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini App Home</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <div class="logo">EA</div>
-      <div>
-        <div class="title">Earn App</div>
-        <div class="small">টেলিগ্রাম মিনি-অ্যাপ</div>
-      </div>
-    </div>
-
-    <div class="stats" id="userStats">
-      <div class="stat">
-        Coins
-        <strong id="homeCoins">0</strong>
-      </div>
-      <div class="stat">
-        Referrals
-        <strong id="homeRef">0</strong>
-      </div>
-    </div>
-
-    <div style="margin-top:12px">
-      <a href="ads.html"><button class="btn">📺 Watch Ads</button></a>
-      <a href="game.html"><button class="btn" style="margin-top:8px">🎮 Play Games</button></a>
-      <a href="withdraw.html"><button class="btn ghost" style="margin-top:8px">💵 Withdraw</button></a>
-      <a href="profile.html"><button class="btn ghost" style="margin-top:8px">👤 Profile</button></a>
-    </div>
-
-    <p class="small center" style="margin-top:10px">Open this inside Telegram app for auto-login</p>
+  <div class="container">
+    <h1>🎉 Welcome to Baby100Coin</h1>
+    <nav>
+      <a href="ads.html">🎥 Watch Ads</a>
+      <a href="game.html">🎮 Play Game</a>
+      <a href="withdraw.html">💵 Withdraw</a>
+      <a href="profile.html">👤 Profile</a>
+    </nav>
   </div>
-
-  <script type="module">
-    import './app.js';
-    (async ()=>{
-      const user = window.appHelpers.getTelegramUser();
-      const uid = user?.id || localStorage.getItem('guest_user') || null;
-      if(!uid){
-        // create guest id
-        const g = 'guest_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-        localStorage.setItem('guest_user', g);
-      }
-      const id = user?.id || localStorage.getItem('guest_user');
-
-      // ensure DB doc
-      await window.appHelpers.ensureUserDoc(id, { name: user?.first_name, username: user?.username });
-
-      // realtime snapshot to show coins & referrals
-      import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js").then(({doc, onSnapshot, getFirestore})=>{
-        const db = getFirestore();
-        const ref = doc(db, "users", String(id));
-        onSnapshot(ref, snap => {
-          if(snap.exists()){
-            document.getElementById('homeCoins').innerText = snap.data().coins || 0;
-            document.getElementById('homeRef').innerText = snap.data().referrals || 0;
-          }
-        });
-      });
-    })();
-  </script>
 </body>
 </html>
