@@ -1,58 +1,32 @@
-<!-- withdraw.html -->
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
   <title>Withdraw</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Monetag SDK -->
+  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
+  <style>
+    body { font-family: Arial; background: #f9f9f9; text-align: center; }
+    .form-box { margin: 20px auto; padding: 20px; max-width: 350px; background: #fff; border-radius: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+    input, button { width: 90%; margin: 10px 0; padding: 12px; border-radius: 6px; border: 1px solid #ccc; }
+    button { background: #4CAF50; color: #fff; border: none; }
+  </style>
 </head>
 <body>
-  <div class="card center">
-    <h2>💵 Withdraw</h2>
-    <p class="small">Minimum 1000 coins = 100 TK</p>
-
-    <input id="nameInput" class="input" placeholder="আপনার নাম">
-    <input id="bkashInput" class="input" placeholder="বিকাশ নাম্বার (01xxxxxxxxx)">
-    <button id="withdrawBtn" class="btn">Send Withdraw Request</button>
-    <p id="withdrawMsg" class="small"></p>
+  <h2>💵 Withdraw Coins</h2>
+  <div class="form-box">
+    <input type="text" placeholder="Enter Bkash Number">
+    <input type="text" placeholder="Enter Your Name">
+    <button onclick="requestWithdraw()">Withdraw</button>
   </div>
 
-  <script type="module">
-    import './app.js';
-    const user = window.appHelpers.getTelegramUser();
-    const id = user?.id || localStorage.getItem('guest_user');
-
-    // ensure doc
-    await window.appHelpers.ensureUserDoc(id, { name: user?.first_name, username: user?.username });
-
-    const withdrawBtn = document.getElementById('withdrawBtn');
-    const msg = document.getElementById('withdrawMsg');
-
-    withdrawBtn.addEventListener('click', async ()=>{
-      const name = document.getElementById('nameInput').value.trim();
-      const bkash = document.getElementById('bkashInput').value.trim();
-      if(!name || !bkash) { msg.innerText = 'Please fill both fields'; return; }
-
-      const coins = await window.appHelpers.getUserCoins(id);
-      if(coins < 1000){ msg.innerText = 'You need minimum 1000 coins'; return; }
-
-      // compute amount (100 TK per 1000 coins)
-      const amountTk = Math.floor(coins / 1000) * 100;
-      // create withdraw request record and zero user's coins
-      await window.appHelpers.createWithdrawRequest(id, name, bkash, coins, amountTk);
-      // reset user's coins to remainder (coins % 1000)
-      const remaining = coins % 1000;
-      const ref = await window.appHelpers.ensureUserDoc(id);
-      // set coins to remaining
-      await (async ()=>{
-        // direct update
-        const { updateDoc, doc } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
-        await updateDoc(doc((await import("./firebase.js")).default || (await import("./firebase.js")).firebaseConfig, "users", String(id)), { coins: remaining });
-      })().catch(()=>{ /*ignored*/ });
-
-      msg.innerText = `Withdraw request created for ${amountTk} TK. Admin will review.`;
-    });
+  <script>
+    function requestWithdraw() {
+      alert("✅ Withdraw request sent!");
+      show_9931551().then(() => {
+        console.log("Ad after withdraw request");
+      });
+    }
   </script>
 </body>
 </html>
