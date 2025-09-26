@@ -1,47 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Earn from Ads</title>
-  <link rel="stylesheet" href="style.css">
-  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ads — Earn Coins</title>
+
+  <!-- Monetag SDK (HEAD) -->
+  <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
+
+  <!-- Telegram WebApp -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root{--accent:#2563eb}
+    body{font-family:Inter,system-ui,Arial;background:linear-gradient(180deg,#f0f6ff,#ffffff);margin:0;color:#0f172a;display:flex;flex-direction:column;min-height:100vh}
+    header{background:var(--accent);color:#fff;padding:14px;text-align:center;font-weight:700}
+    .container{max-width:420px;margin:18px auto;padding:16px;width:100%}
+    .card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(15,23,42,0.06);margin-bottom:12px}
+    h1{font-size:18px;margin:0 0 8px}
+    p.small{color:#64748b;margin:6px 0 12px}
+    .btn{display:block;width:100%;padding:12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+    .btn.ghost{background:#fff;color:var(--accent);border:1px solid #eef2ff}
+    #status{margin-top:10px;color:#0f172a}
+    .footer{margin-top:auto;padding:12px;text-align:center;color:#64748b;font-size:13px}
+  </style>
 </head>
-<body class="app-body">
+<body>
+  <header>🎁 Ads — Earn Coins</header>
 
-  <!-- Header -->
-  <header class="header">
-    <h1>🎁 Earn from Ads</h1>
-  </header>
-
-  <!-- Main Content -->
-  <main class="content">
-    <div class="card">
-      <h2>বিজ্ঞাপন দেখে আয় করুন</h2>
-      <p>প্রতিবার বিজ্ঞাপন দেখার পর আপনি কয়েন পাবেন।</p>
-      <button onclick="watchAd()" class="btn">▶ বিজ্ঞাপন দেখুন</button>
+  <div class="container">
+    <div class="card" id="profileCard">
+      <h1 id="title">লোড হচ্ছে...</h1>
+      <p class="small" id="subtitle">Telegram থেকে অটো-লগইন হবে।</p>
+      <div style="display:flex;gap:12px;align-items:center">
+        <img id="avatar" src="https://i.pravatar.cc/100" style="width:64px;height:64px;border-radius:12px;object-fit:cover" />
+        <div>
+          <div id="name" style="font-weight:700">Guest</div>
+          <div id="uname" class="small">@username</div>
+          <div style="margin-top:8px">💰 <span id="coins">0</span> Coins</div>
+        </div>
+      </div>
     </div>
-  </main>
 
-  <!-- Bottom Nav -->
-  <nav class="bottom-nav">
-    <a href="index.html" class="nav-btn">🏠 Home</a>
-    <a href="ads.html" class="nav-btn active">🎁 Ads</a>
-    <a href="game.html" class="nav-btn">🎮 Game</a>
-    <a href="profile.html" class="nav-btn">👤 Profile</a>
-    <a href="withdraw.html" class="nav-btn">💳 Withdraw</a>
-  </nav>
+    <div class="card">
+      <h1>Watch Rewarded Ad</h1>
+      <p class="small">পুরো বিজ্ঞাপন দেখলে +10 কয়েন দেয়া হবে (Monetag rewarded).</p>
+      <button id="watchBtn" class="btn">▶ Watch & Earn 10</button>
+      <p id="status"></p>
+    </div>
 
-  <script>
-    function watchAd() {
-      show_9931551().then(() => {
-        alert("✅ বিজ্ঞাপন দেখার জন্য ধন্যবাদ! আপনি 10 কয়েন পেয়েছেন।");
-        // এখানে কয়েন Firebase-এ যোগ করার কোড বসানো হবে
-      }).catch(() => {
-        alert("⚠ বিজ্ঞাপন লোড হয়নি। আবার চেষ্টা করুন।");
-      });
+    <div class="card">
+      <h1>Quick Popup Reward</h1>
+      <p class="small">শর্ট popup রিওয়ার্ড — কদাচিৎ কাজ করে</p>
+      <button id="popupBtn" class="btn ghost">🔔 Quick Reward</button>
+    </div>
+  </div>
+
+  <div class="footer">App running as Telegram Mini App — make sure to open from Telegram</div>
+
+<script>
+/* ====== Firebase init (compat) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
+  authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
+  projectId: "telegram-miniapp-e8cc0",
+  storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
+  messagingSenderId: "827930913054",
+  appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ====== Helpers ====== */
+function getTelegramUser() {
+  try { return window.Telegram?.WebApp?.initDataUnsafe?.user || null; } catch(e){ return null; }
+}
+function guestId() {
+  let g = localStorage.getItem('guest_id');
+  if(!g){ g = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); localStorage.setItem('guest_id', g); }
+  return g;
+}
+async function ensureUserDoc(userId, userObj = {}) {
+  const ref = db.collection('users').doc(String(userId));
+  const snap = await ref.get();
+  if(!snap.exists){
+    await ref.set({
+      name: userObj.first_name || userObj.name || 'Guest',
+      username: userObj.username || null,
+      telegramId: userId,
+      coins: 0,
+      createdAt: new Date().toISOString()
+    });
+  }
+  return ref;
+}
+async function addCoins(userId, amount){
+  const ref = db.collection('users').doc(String(userId));
+  await db.runTransaction(async tx => {
+    const doc = await tx.get(ref);
+    if(!doc.exists) tx.set(ref, { coins: amount }, { merge: true});
+    else tx.update(ref, { coins: (doc.data().coins || 0) + amount });
+  });
+}
+
+/* ====== UI wiring ====== */
+const statusEl = document.getElementById('status');
+const coinsEl = document.getElementById('coins');
+const nameEl = document.getElementById('name');
+const unameEl = document.getElementById('uname');
+const avatarEl = document.getElementById('avatar');
+
+(async function init(){
+  const tg = window.Telegram?.WebApp;
+  if(tg) tg.ready();
+
+  const user = getTelegramUser();
+  const userId = user?.id ? String(user.id) : guestId();
+
+  // ensure in firestore
+  await ensureUserDoc(userId, user || { name: 'Guest' });
+
+  // update UI
+  if(user){
+    nameEl.innerText = (user.first_name || '') + (user.last_name ? ' '+user.last_name : '');
+    unameEl.innerText = user.username ? '@'+user.username : '';
+    if(user.photo_url) avatarEl.src = user.photo_url;
+  } else {
+    nameEl.innerText = 'Guest';
+    unameEl.innerText = '';
+  }
+
+  // realtime coins
+  db.collection('users').doc(String(userId)).onSnapshot(doc => {
+    if(!doc.exists) return;
+    coinsEl.innerText = doc.data().coins || 0;
+  });
+
+  // buttons
+  document.getElementById('watchBtn').addEventListener('click', async ()=>{
+    statusEl.innerText = '⌛ Loading ad...';
+    try {
+      // Monetag rewarded interstitial
+      await show_9931551();
+      // reward
+      await addCoins(userId, 10);
+      statusEl.innerText = '✅ 10 coins added';
+    } catch(e){
+      console.error(e);
+      statusEl.innerText = '⚠️ Ad failed. Try again.';
+      alert('Ad failed: ' + (e?.message || e));
     }
-  </script>
+  });
 
+  document.getElementById('popupBtn').addEventListener('click', async ()=>{
+    statusEl.innerText = '⌛ Popup...';
+    try{
+      await show_9931551('pop');
+      await addCoins(userId, 5);
+      statusEl.innerText = '✅ 5 coins added (popup)';
+    }catch(e){
+      console.warn(e); statusEl.innerText = '⚠️ Popup failed';
+    }
+  });
+
+})();
+</script>
 </body>
 </html>
