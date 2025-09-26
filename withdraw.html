@@ -1,49 +1,46 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Withdraw</title>
   <link rel="stylesheet" href="style.css">
-
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 </head>
-<body>
-  <div class="container">
-    <h2>💵 Withdraw Coins</h2>
-    <form id="withdrawForm">
-      <input type="text" id="name" placeholder="আপনার নাম" required>
-      <input type="text" id="bkash" placeholder="বিকাশ নাম্বার" required>
-      <button type="submit">Withdraw</button>
-    </form>
-    <p id="status"></p>
-  </div>
+<body class="app-body">
+
+  <header class="header">
+    <h1>💳 Withdraw</h1>
+  </header>
+
+  <main class="content">
+    <div class="card">
+      <h2>কয়েন উত্তোলন</h2>
+      <p>👉 1000 কয়েন = 100 টাকা (বিকাশে)</p>
+      <form onsubmit="withdraw(event)">
+        <input type="text" id="bkashNumber" placeholder="বিকাশ নাম্বার দিন" required><br><br>
+        <input type="text" id="fullName" placeholder="আপনার নাম দিন" required><br><br>
+        <button type="submit" class="btn">✅ Withdraw Request</button>
+      </form>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-btn">🏠 Home</a>
+    <a href="ads.html" class="nav-btn">🎁 Ads</a>
+    <a href="game.html" class="nav-btn">🎮 Game</a>
+    <a href="profile.html" class="nav-btn">👤 Profile</a>
+    <a href="withdraw.html" class="nav-btn active">💳 Withdraw</a>
+  </nav>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6b93A_HeU4FADs3o2Ysw6-dlRRS2TbZk",
-      authDomain: "telegram-miniapp-e8cc0.firebaseapp.com",
-      projectId: "telegram-miniapp-e8cc0",
-      storageBucket: "telegram-miniapp-e8cc0.firebasestorage.app",
-      messagingSenderId: "827930913054",
-      appId: "1:827930913054:web:502b56e0c198d8e9ff410f"
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const userId = "demoUser123";
-
-    document.getElementById("withdrawForm").addEventListener("submit", async (e) => {
+    function withdraw(e) {
       e.preventDefault();
-      const name = document.getElementById("name").value;
-      const bkash = document.getElementById("bkash").value;
-
-      await db.collection("withdraws").add({
-        userId, name, bkash, time: new Date()
-      });
-      document.getElementById("status").innerText = "✅ Withdraw request sent!";
-    });
+      let number = document.getElementById("bkashNumber").value;
+      let name = document.getElementById("fullName").value;
+      alert(`✅ Withdraw Request Sent!\nনাম: ${name}\nবিকাশ: ${number}`);
+      // এখানে Firebase-এ রিকোয়েস্ট সেভ হবে
+    }
   </script>
+
 </body>
 </html>
