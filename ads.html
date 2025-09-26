@@ -1,18 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Earn Coins</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Earn Coins - Ads</title>
+  <link rel="stylesheet" href="style.css"/>
   <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
 </head>
-<body>
-  <div class="card">
-    <h2>🎁 Earn Coins by Watching Ads</h2>
-    <p>Balance: <span id="balance">0</span> 🪙</p>
-    <button id="watchAd">Watch Ad</button>
+<body class="app-body">
+
+  <div class="container">
+    <h1 class="title">🎁 Watch Ads & Earn Coins</h1>
+
+    <div class="card">
+      <p>Click the button below and watch the full ad to earn rewards.</p>
+      <button id="watchAdBtn" class="btn-primary">▶ Watch Ad</button>
+    </div>
+
+    <div class="reward-box">
+      <h2>Your Coins: <span id="coinBalance">0</span></h2>
+    </div>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script src="firebase.js"></script>
+  <script>
+    let coins = 0;
+
+    document.getElementById('watchAdBtn').addEventListener('click', () => {
+      show_9931551().then(() => {
+        coins += 10; // প্রতি এড দেখলে 10 কয়েন
+        document.getElementById('coinBalance').innerText = coins;
+        alert("✅ Congrats! You earned 10 coins.");
+      }).catch(() => {
+        alert("⚠ Ad failed to load. Try again.");
+      });
+    });
+  </script>
 </body>
 </html>
