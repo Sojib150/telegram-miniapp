@@ -1,63 +1,25 @@
-// app.js (type="module")
-import { firebaseConfig } from './firebase.js';
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { addCoins, getCoins } from "./firebase.js";
 
-// init firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+window.onload = async () => {
+  // Telegram init data
+  const tg = window.Telegram.WebApp;
+  tg.expand();
 
-// Telegram WebApp helper
-export function getTelegramUser() {
-  try {
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      return tg.initDataUnsafe?.user || null;
-    }
-  } catch(e) { console.warn("tg not available", e); }
-  return null;
-}
+  const userId = tg.initDataUnsafe?.user?.id || "guest";
+  const name = tg.initDataUnsafe?.user?.first_name || "Guest";
 
-// ensure user document exists
-export async function ensureUserDoc(userId, userObj = {}) {
-  if(!userId) return;
-  const ref = doc(db, "users", String(userId));
-  const snap = await getDoc(ref);
-  if(!snap.exists()) {
-    await setDoc(ref, {
-      name: userObj.name || "Guest",
-      username: userObj.username || null,
-      telegramId: userId,
-      coins: 0,
-      referrals: 0,
-      createdAt: new Date().toISOString()
+  document.getElementById("username").innerText = name;
+
+  let balance = await getCoins(userId);
+  document.getElementById("balance").innerText = balance;
+
+  // Example: Reward after ad
+  document.getElementById("watchAd").addEventListener("click", () => {
+    show_9931551().then(async () => {
+      await addCoins(userId, 10);
+      let newBalance = await getCoins(userId);
+      document.getElementById("balance").innerText = newBalance;
+      alert("✅ You earned 10 coins!");
     });
-  }
-  return ref;
-}
-
-// increment coins
-export async function addCoinsToUser(userId, amount) {
-  if(!userId || !amount) return;
-  const ref = doc(db, "users", String(userId));
-  await updateDoc(ref, { coins: increment(amount) });
-}
-
-// get coins value
-export async function getUserCoins(userId) {
-  const ref = doc(db, "users", String(userId));
-  const snap = await getDoc(ref);
-  if(snap.exists()) return snap.data().coins || 0;
-  return 0;
-}
-
-// create withdraw request
-export async function createWithdrawRequest(userId, name, bkashNumber, coins, amountTk) {
-  await addDoc(collection(db, "withdraw_requests"), {
-    userId, name, bkashNumber, coins, amountTk, status: "pending", time: new Date().toISOString()
   });
-}
-
-// expose helpers on window for pages to call
-window.appHelpers = { getTelegramUser, ensureUserDoc, addCoinsToUser, getUserCoins, createWithdrawRequest };
+};
