@@ -1,68 +1,27 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Watch Ad & Earn</title>
-  <script async src="https://alwingulla.com/88/tag.min.js" data-zone="9931551" data-cfasync="false"></script>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Ads</title>
+  <!-- Monetag SDK -->
+  <script src='//libtl.com/sdk.js' data-zone='9931551' data-sdk='show_9931551'></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; }
+    .btn { background: #4CAF50; color: white; padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; }
+    .btn:hover { background: #45a049; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card center">
-      <h2>📺 বিজ্ঞাপন দেখে আয় করুন</h2>
-      <p class="small">১৫ সেকেন্ড দেখুন, পরে ১০ কয়েন নিন</p>
+  <h2>🎉 Earn Coins by Watching Ads 🎉</h2>
+  <button class="btn" onclick="showAd()">Watch Ad & Earn</button>
 
-      <div class="ad-box" style="margin-top:12px">
-        <!-- Monetag ad placeholder -->
-        <div id="monetag_area"></div>
-      </div>
-
-      <button id="startAd" class="btn" style="margin-top:12px">▶ Start Ad (15s)</button>
-      <button id="claimAd" class="btn ghost" disabled style="margin-top:8px">✅ Claim 10 Coins</button>
-      <p class="small" id="status"></p>
-    </div>
-  </div>
-
-  <script type="module" src="app.js"></script>
-  <script src="ads.js"></script>
   <script>
-    (function(){
-      const start = document.getElementById('startAd');
-      const claim = document.getElementById('claimAd');
-      const status = document.getElementById('status');
-
-      start.addEventListener('click', ()=>{
-        status.innerText = '⏳ Waiting 15s...';
-        start.disabled = true;
-        // show popup ad (optional) and start timer
-        if(window.ADS && window.ADS.showRewardedPopup) window.ADS.showRewardedPopup().catch(()=>{/*ignore*/});
-        let t=15;
-        const id = setInterval(()=> {
-          t--; status.innerText = `⏳ ${t}s remaining`;
-          if(t<=0){ clearInterval(id); claim.disabled=false; status.innerText='✅ Ready to claim'; }
-        },1000);
-      });
-
-      claim.addEventListener('click', async ()=>{
-        // reward via ads wrapper to ensure server credit (we also call Monetag rewarded interstitial for confirmation)
-        try {
-          if(window.ADS && window.ADS.showRewardedInterstitial){
-            await window.ADS.showRewardedInterstitial(); // this will also call rewardUserCoins
-          } else {
-            // fallback: direct reward
-            const user = window.appHelpers.getTelegramUser();
-            const id = user?.id || localStorage.getItem('guest_user');
-            await window.appHelpers.addCoinsToUser(id, 10);
-          }
-          status.innerText = '✅ Claimed 10 coins';
-          claim.disabled = true;
-          start.disabled = false;
-        } catch(e){
-          status.innerText = '⚠️ Ad not available, try again';
-          start.disabled = false;
-        }
-      });
-    })();
+    function showAd() {
+      show_9931551().then(() => {
+        alert("✅ You earned 10 coins!");
+        // এখানে কয়েন বাড়ানোর ফাংশন বসবে
+      }).catch(e => console.log("Ad Error:", e));
+    }
   </script>
 </body>
 </html>
