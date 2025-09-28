@@ -1,3 +1,15 @@
-"scripts": {
-  "start": "node server.js"
+{
+  "name": "telegram-miniapp",
+  "version": "1.0.0",
+  "description": "Telegram Income Mini App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
 }
