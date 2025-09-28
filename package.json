@@ -1,15 +1,16 @@
 {
   "name": "telegram-miniapp",
   "version": "1.0.0",
-  "description": "Telegram Income Mini App",
+  "description": "Telegram income mini app with ads and games",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "path": "^0.12.7"
   },
   "engines": {
-    "node": ">=18.x"
+    "node": ">=16.x"
   }
 }
