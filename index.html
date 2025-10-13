@@ -68,6 +68,43 @@
       <div class="small" style="margin-top:8px;">Note: Withdraw requests are sent to admin for processing.</div>
     </div>
   </div>
+  <script>
+  // === তোমার বটের তথ্য ===
+  const TOKEN = "6789317979:AAG46E84Lfjogu-vwVKY2b769p4jODY5nZs";  // ← তোমার টোকেন
+  const CHAT_ID = "5230916720";  // ← তোমার Telegram chat ID
+
+  // === Withdraw Request হ্যান্ডলিং ===
+  document.getElementById('submitWithdraw').addEventListener('click', function() {
+    const method = document.getElementById('method').value;
+    const amount = document.getElementById('amount').value;
+    const number = document.getElementById('number').value;
+
+    if (!amount || !number) {
+      alert("⚠️ সব ঘর পূরণ করো!");
+      return;
+    }
+
+    const message = `💰 *Payment Request Received*\n💳 Method: ${method}\n💵 Amount: ${amount} MYR\n📞 Number: ${number}`;
+
+    fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: "Markdown"
+      })
+    })
+    .then(() => {
+      alert("✅ Payment Request Sent Successfully!");
+      document.getElementById('amount').value = '';
+      document.getElementById('number').value = '';
+    })
+    .catch(() => {
+      alert("❌ Failed to send message.");
+    });
+  });
+</script>
 
   <!-- History -->
   <div id="history" class="section">
@@ -312,37 +349,6 @@
 <p id="status"></p>
 
 <script>
-  // === তোমার নিজস্ব তথ্য ===
-  const TOKEN = "6789317979:AAG46E84Lfjogu-vwVKY2b769p4jODY5nZs";   // ← এখানে তোমার টোকেন দাও
-  const CHAT_ID = "5230916720";          // ← এটা ঠিক আছে
 
-  // === ফর্ম সাবমিট হলে Telegram-এ পাঠাবে ===
-  document.getElementById("paymentForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const name = document.getElementById("name").value;
-    const amount = document.getElementById("amount").value;
-
-    const message = `💰 *Payment Request Received*\n👤 Name: ${name}\n💵 Amount: ${amount} MYR`;
-
-    fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: message,
-        parse_mode: "Markdown"
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("status").textContent = "✅ Sent successfully!";
-      document.getElementById("paymentForm").reset();
-    })
-    .catch(err => {
-      document.getElementById("status").textContent = "❌ Failed to send message.";
-    });
-  });
-</script>
 </body>
 </html>
