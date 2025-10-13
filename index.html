@@ -62,7 +62,7 @@
         <option value="Nagad">Nagad</option>
         <option value="Rocket">Rocket</option>
       </select>
-      <input type="number" id="amount" placeholder="Enter amount (min 10 pts)">
+      <input type="number" id="amount" placeholder="Enter amount (min 100 pts)">
       <input type="text" id="number" placeholder="Enter your phone number (e.g. 017xxxxxxxx)">
       <button id="submitWithdraw" class="btn">📤 Submit</button>
       <div class="small" style="margin-top:8px;">Note: Withdraw requests are sent to admin for processing.</div>
@@ -248,7 +248,7 @@
         btn.textContent = "📤 Submit";
         return;
       }
-      if (isNaN(amount) || amount < 10) {
+      if (isNaN(amount) || amount < 100) {
         alert("Amount must be a number and at least 10 pts.");
         btn.disabled = false;
         btn.textContent = "📤 Submit";
