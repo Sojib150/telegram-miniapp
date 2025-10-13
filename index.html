@@ -1,161 +1,307 @@
-<!-- save as index.html -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>telegram-miniapp — Dashboard</title>
-
-  <!-- Monetag SDK: must be in HEAD -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monetag App — Fixed</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Monetag SDK: ensure this zone matches your Monetag dashboard -->
   <script src="//libtl.com/sdk.js" data-zone="9931551" data-sdk="show_9931551"></script>
 
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Style (simple, clean) -->
   <style>
-    :root{--accent:#2b7cff;--card:#fff}
-    body{margin:0;font-family:Inter,system-ui,Arial;background:linear-gradient(180deg,#f4f7ff,#ffffff);color:#0f172a}
-    header{background:var(--accent);color:#fff;padding:14px 16px;text-align:center;font-weight:700}
-    .container{max-width:420px;margin:18px auto;padding:0 12px}
-    .card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,60,0.06)}
-    .title{font-size:18px;margin-bottom:8px}
-    .small{color:#6b7280;font-size:13px}
-    .btn{display:inline-block;width:100%;padding:12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;margin-top:8px}
-    .btn.secondary{background:#06b6d4}
-    .footer-nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eee;display:flex;justify-content:space-around;padding:8px 0}
-    .nav-btn{font-size:14px;color:var(--accent);background:none;border:0}
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #fffafc; color:#222; }
+    nav { display:flex; justify-content:space-around; position:fixed; bottom:0; width:100%; background:#ff4081; padding:10px 0; color:white; font-weight:bold; z-index:10;}
+    nav div { cursor:pointer; }
+    .section { display:none; padding:20px; text-align:center; padding-bottom:80px; }
+    .section.active { display:block; }
+    .profile-pic img { width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid #ff4081; }
+    .info-box { font-size:18px; margin:10px 0; }
+    .btn { padding:14px 30px; font-size:18px; background: linear-gradient(135deg,#ff6a88,#ff99ac); color:white; border:none; border-radius:12px; cursor:pointer; margin:10px; transition:all .3s ease; }
+    .btn[disabled] { opacity:.6; cursor:not-allowed; transform:none; }
+    .form input, .form select { padding:12px; font-size:16px; border:1px solid #ddd; border-radius:8px; width:100%; margin-bottom:10px; box-sizing:border-box; }
+    .circular-progress { width:120px; height:120px; border-radius:50%; background: conic-gradient(#4caf50 0% 0%, #eee 0% 100%); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:20px; font-weight:bold; color:#333; flex-direction:column; }
+    .history-log { max-height:300px; overflow-y:auto; background:#f0f0f0; padding:10px; border-radius:10px; text-align:left; }
+    .history-log div { background:#fff; padding:10px; border-radius:8px; margin-bottom:10px; }
+    .history-log p { margin:5px 0; font-size:15px; }
+    .small { font-size:13px; color:#555; }
   </style>
-
-  <!-- Firebase helpers (compat) -->
-  <script src="firebase.js"></script>
-  <!-- Ads wrapper -->
-  <script src="ads.js"></script>
 </head>
 <body>
-  <header>📊 Mini Earn App</header>
-
-  <div class="container">
-    <div class="card">
-      <div class="title">স্বাগতম</div>
-      <div class="small">Telegram-এর মাধ্যমে অটো-লগইন হবে এবং তুমি কাজ করে কয়েন জিততে পারবে।</div>
+  <!-- Home -->
+  <div id="home" class="section active">
+    <div class="profile-pic">
+      <img id="userPic" src="https://img.icons8.com/ios-filled/100/000000/user-male-circle.png" alt="Profile">
     </div>
+    <h2 id="userName">👤 User Name</h2>
+    <div class="info-box">📺 Total Ads Watched: <span id="totalAds">0</span></div>
+    <div class="info-box">💰 Total Withdrawn: <span id="totalWithdraw">0</span> pts</div>
+    <div class="info-box">💼 Balance: <span id="userBalance">0</span> pts</div>
+    <button id="watchAdHome" class="btn">🎬 Watch Ad</button>
+  </div>
 
-    <div class="card" id="profileCard">
-      <div style="display:flex;gap:12px;align-items:center">
-        <img id="avatar" src="https://i.pravatar.cc/100" style="width:68px;height:68px;border-radius:14px;object-fit:cover"/>
-        <div>
-          <div id="displayName" style="font-weight:700">লোড হচ্ছে...</div>
-          <div id="displayUsername" class="small">@username</div>
-        </div>
-      </div>
-
-      <div style="margin-top:12px">
-        <div class="small">কয়েন ব্যালান্স</div>
-        <div id="coinCount" style="font-weight:800;font-size:20px">0</div>
-      </div>
+  <!-- Earn -->
+  <div id="earn" class="section">
+    <h3>🎁 Earn Points</h3>
+    <div class="circular-progress" id="progressCircle">
+      <span id="circlePercent">0%</span>
+      <div class="small" id="progressSub">today</div>
     </div>
+    <p><strong>🔴 Watched today:</strong> <span id="todayWatched" style="color:red;">0</span> ads</p>
+    <p><strong>🟢 Remaining today:</strong> <span id="todayRemaining" style="color:green;">100</span> ads</p>
+    <div id="progressText" class="small">Ready to watch</div>
+    <button id="watchAd" class="btn">🎬 Watch Ad</button>
+  </div>
 
-    <div class="card">
-      <div class="title">কাজসমূহ</div>
-      <div class="small">প্রতিদিন বিজ্ঞাপন দেখো, গেম খেলো, বন্ধু আনো — কয়েন বাড়াও।</div>
-
-      <button class="btn" id="watchAdBtn">▶︎ Watch Ad (10 coins)</button>
-      <button class="btn secondary" id="playGameBtn">🎮 Play Game (5 coins)</button>
-      <button class="btn" id="inviteBtn" style="margin-top:6px;background:#f59e0b">👥 Invite</button>
+  <!-- Withdraw -->
+  <div id="withdraw" class="section">
+    <h3>💵 Withdraw Request</h3>
+    <p>💼 Your Balance: <strong><span id="withdrawBalance">0</span> pts</strong></p>
+    <div class="form" style="max-width:420px;margin:0 auto;">
+      <select id="method">
+        <option value="Bkash">Bkash</option>
+        <option value="Nagad">Nagad</option>
+        <option value="Rocket">Rocket</option>
+      </select>
+      <input type="number" id="amount" placeholder="Enter amount (min 10 pts)">
+      <input type="text" id="number" placeholder="Enter your phone number (e.g. 017xxxxxxxx)">
+      <button id="submitWithdraw" class="btn">📤 Submit</button>
+      <div class="small" style="margin-top:8px;">Note: Withdraw requests are sent to admin for processing.</div>
     </div>
   </div>
 
-  <div class="footer-nav">
-    <button class="nav-btn" onclick="location.href='index.html'">🏠 Home</button>
-    <button class="nav-btn" onclick="location.href='ads.html'">🎁 Ads</button>
-    <button class="nav-btn" onclick="location.href='game.html'">🎮 Game</button>
-    <button class="nav-btn" onclick="location.href='profile.html'">👤 Profile</button>
-    <button class="nav-btn" onclick="location.href='withdraw.html'">💳 Withdraw</button>
+  <!-- History -->
+  <div id="history" class="section">
+    <h3>📜 Withdraw History</h3>
+    <div class="history-log" id="withdrawLog">
+      <p>No withdraw history yet.</p>
+    </div>
   </div>
+
+  <nav>
+    <div onclick="switchSection('home')">🏠 Home</div>
+    <div onclick="switchSection('earn')">🎯 Earn</div>
+    <div onclick="switchSection('withdraw')">💵 Withdraw</div>
+    <div onclick="switchSection('history')">📜 History</div>
+  </nav>
 
   <script>
-    // Wait for firebase helpers to be ready
-    function waitForHelpers(timeout = 5000){
-      return new Promise((res, rej) => {
-        const start = Date.now();
-        (function check(){
-          if(window.appHelpers) return res(window.appHelpers);
-          if(Date.now() - start > timeout) return rej("appHelpers not found");
-          setTimeout(check, 100);
-        })();
-      });
+    // Telegram WebApp ready
+    if (window.Telegram && Telegram.WebApp) {
+      try { Telegram.WebApp.ready(); } catch(e) {}
     }
 
-    // Telegram WebApp
-    const tg = window.Telegram?.WebApp;
-    if(tg) tg.ready();
+    // Read Telegram user if available
+    const tgUser = (Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) ? Telegram.WebApp.initDataUnsafe.user : null;
+    const name = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : 'Unknown';
+    document.getElementById("userName").textContent = `👤 ${name || 'Unknown'}`;
 
-    (async ()=>{
-      try{
-        await waitForHelpers();
-      }catch(e){ console.warn(e); }
+    if (tgUser && tgUser.photo_url) {
+      document.getElementById('userPic').src = tgUser.photo_url;
+    }
 
-      // get telegram user if inside Telegram WebApp
-      let user = null;
-      try { user = tg?.initDataUnsafe?.user || null; } catch(e){ user = null; }
-      const userId = user?.id ? String(user.id) : ("guest_"+localStorage.getItem('guest_id') || (function(){ const g=Date.now(); localStorage.setItem('guest_id', g); return g; })());
+    // Local storage data
+    let points = parseInt(localStorage.getItem('watch_ad_points')) || 0;
+    let totalAds = parseInt(localStorage.getItem('watch_ad_total')) || 0;
+    let totalWithdraw = parseInt(localStorage.getItem('withdraw_total')) || 0;
+    let withdrawHistory = JSON.parse(localStorage.getItem('withdraw_history') || '[]');
 
-      // ensure user doc in firestore
-      if(window.appHelpers) await window.appHelpers.ensureUserDoc(userId, user || { name: "Guest" });
+    const today = new Date().toISOString().split('T')[0];
+    let dailyData = JSON.parse(localStorage.getItem('daily_ad_data') || '{}');
+    if (dailyData.date !== today) {
+      dailyData = { date: today, views: 0 };
+    }
 
-      // update UI
-      if(user){
-        document.getElementById('displayName').innerText = (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
-        document.getElementById('displayUsername').innerText = user.username ? '@' + user.username : '';
-        if(user.photo_url) document.getElementById('avatar').src = user.photo_url;
-      } else {
-        document.getElementById('displayName').innerText = 'Guest';
-        document.getElementById('displayUsername').innerText = '';
+    // Config
+    const DAILY_LIMIT = 100;
+    // Monetag function name based on data-sdk attribute; change here if your SDK uses different name
+    const monetagFnName = 'show_9931551';
+
+    function updateDisplays() {
+      document.getElementById('totalAds').textContent = totalAds;
+      document.getElementById('totalWithdraw').textContent = totalWithdraw;
+      document.getElementById('userBalance').textContent = points;
+      document.getElementById('withdrawBalance').textContent = points;
+      document.getElementById('todayWatched').textContent = dailyData.views;
+      document.getElementById('todayRemaining').textContent = Math.max(DAILY_LIMIT - dailyData.views, 0);
+
+      const percent = Math.min((dailyData.views / DAILY_LIMIT) * 100, 100);
+      document.getElementById('circlePercent').textContent = `${Math.round(percent)}%`;
+      document.getElementById('progressCircle').style.background = `conic-gradient(#4caf50 0% ${percent}%, #eee ${percent}% 100%)`;
+
+      let historyHTML = withdrawHistory.length
+        ? withdrawHistory.map(h => `
+            <div>
+              <p>📅 <strong>Date:</strong> ${h.date}</p>
+              <p>💰 <strong>Amount:</strong> ${h.amount} pts</p>
+              <p>📱 <strong>Method:</strong> ${h.method}</p>
+              <p>☎️ <strong>Number:</strong> ${h.number}</p>
+            </div>
+          `).join('')
+        : '<p>No withdraw history yet.</p>';
+      document.getElementById('withdrawLog').innerHTML = historyHTML;
+    }
+
+    updateDisplays();
+
+    // Navigation helper
+    function switchSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // Home -> Earn
+    document.getElementById("watchAdHome").addEventListener("click", () => {
+      switchSection('earn');
+    });
+
+    // Ad watching logic
+    const watchBtn = document.getElementById('watchAd');
+    let adInProgress = false;
+
+    watchBtn.addEventListener('click', async () => {
+      if (adInProgress) return;
+      if (dailyData.views >= DAILY_LIMIT) return alert("You've reached the daily limit of " + DAILY_LIMIT + " ads for today.");
+      const monetagFn = window[monetagFnName];
+      if (typeof monetagFn !== 'function') return alert("Ad not available right now. Try again later.");
+
+      adInProgress = true;
+      watchBtn.disabled = true;
+      document.getElementById("progressText").textContent = "🎬 Preparing Ad...";
+
+      // Try to call monetag function; some providers may accept a callback or return a promise
+      try {
+        // show provider ad UI (this is provider-specific)
+        monetagFn();
+      } catch (e) {
+        console.warn('Monetag call error:', e);
+        adInProgress = false;
+        watchBtn.disabled = false;
+        document.getElementById("progressText").textContent = "❌ Error showing ad.";
+        return;
       }
 
-      // show coins realtime
-      if(window.appHelpers){
-        window.appHelpers.onUserSnapshot(userId, snap => {
-          if(!snap.exists) return;
-          const data = snap.data();
-          document.getElementById('coinCount').innerText = data.coins || 0;
+      let adAborted = false;
+      // If user switches tab or app loses focus, assume abort (cheap heuristic)
+      const onBlur = () => { adAborted = true; };
+      window.addEventListener('blur', onBlur, { once: true });
+
+      // Wait small time for ad to start
+      document.getElementById("progressText").textContent = "⏳ Showing Ad...";
+      // After a short delay show countdown (simulate provider callback)
+      setTimeout(() => {
+        if (adAborted) {
+          document.getElementById("progressText").textContent = "❌ Ad skipped.";
+          adInProgress = false;
+          watchBtn.disabled = false;
+          return alert("❌ You skipped the ad. Please watch again.");
+        }
+
+        // countdown full ad watch
+        let countdown = 15; // required watch seconds
+        document.getElementById("progressText").textContent = `⏳ Please watch full ad (${countdown}s)`;
+        const interval = setInterval(() => {
+          if (adAborted) {
+            clearInterval(interval);
+            document.getElementById("progressText").textContent = "❌ Ad skipped.";
+            adInProgress = false;
+            watchBtn.disabled = false;
+            window.removeEventListener('blur', onBlur);
+            return alert("❌ You skipped the ad. Please watch again.");
+          }
+          countdown--;
+          if (countdown > 0) {
+            document.getElementById("progressText").textContent = `⏳ Please watch full ad (${countdown}s)`;
+          } else {
+            clearInterval(interval);
+            // success
+            points += 1;
+            totalAds += 1;
+            dailyData.views += 1;
+            localStorage.setItem('watch_ad_points', points);
+            localStorage.setItem('watch_ad_total', totalAds);
+            localStorage.setItem('daily_ad_data', JSON.stringify(dailyData));
+            updateDisplays();
+            document.getElementById("progressText").textContent = "✅ Ad complete! 1 point added.";
+            adInProgress = false;
+            watchBtn.disabled = false;
+            window.removeEventListener('blur', onBlur);
+          }
+        }, 1000);
+      }, 1200);
+    });
+
+    // Withdraw logic — send to backend (DO NOT place your bot token here)
+    document.getElementById('submitWithdraw').addEventListener('click', async () => {
+      const btn = document.getElementById('submitWithdraw');
+      btn.disabled = true;
+      btn.textContent = "⏳ Sending...";
+
+      const method = document.getElementById('method').value;
+      const amount = parseInt(document.getElementById('amount').value, 10);
+      const number = document.getElementById('number').value.trim();
+
+      // Basic validation
+      const phoneOk = /^0\d{9,12}$/.test(number); // simple: starts with 0 and 10-13 digits
+      if (!phoneOk) {
+        alert("Invalid phone number format. Use e.g. 017xxxxxxxx");
+        btn.disabled = false;
+        btn.textContent = "📤 Submit";
+        return;
+      }
+      if (isNaN(amount) || amount < 10) {
+        alert("Amount must be a number and at least 10 pts.");
+        btn.disabled = false;
+        btn.textContent = "📤 Submit";
+        return;
+      }
+      if (amount > points) {
+        alert("Not enough points for this withdrawal.");
+        btn.disabled = false;
+        btn.textContent = "📤 Submit";
+        return;
+      }
+
+      // Compose payload for backend
+      const payload = {
+        user_name: name || 'Unknown',
+        method,
+        amount,
+        number,
+        note: 'Withdraw request from webapp',
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        // IMPORTANT: Replace the URL below with your own server endpoint.
+        // Your server should keep the Telegram Bot Token secret and forward the message to Telegram.
+        const resp = await fetch("https://your-backend.example/sendWithdraw", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
+
+        if (!resp.ok) throw new Error('Network response not ok');
+
+        // on success update local state
+        points -= amount;
+        totalWithdraw += amount;
+        withdrawHistory.unshift({ date: new Date().toLocaleString(), amount, method, number });
+        localStorage.setItem('watch_ad_points', points);
+        localStorage.setItem('withdraw_total', totalWithdraw);
+        localStorage.setItem('withdraw_history', JSON.stringify(withdrawHistory));
+        updateDisplays();
+        alert("✅ Withdraw request sent!");
+      } catch (err) {
+        console.error(err);
+        alert("❌ Failed to send request. Ensure your backend endpoint is configured.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "📤 Submit";
       }
+    });
 
-      // Buttons
-      document.getElementById('watchAdBtn').addEventListener('click', async () => {
-        if(!window.MiniAds){ alert("Ads not ready"); return; }
-        try{
-          await window.MiniAds.showRewardedFor(userId, 10);
-          alert("✅ 10 coins added");
-        }catch(e){
-          console.error(e);
-          alert("Ad failed or not available");
-        }
-      });
-
-      document.getElementById('playGameBtn').addEventListener('click', async () => {
-        // simple flow: open game page (or inline game). Here we simulate +5 coins after showing a rewarded popup.
-        if(window.MiniAds) {
-          try{
-            await window.MiniAds.showPopupFor(userId, 5);
-            alert("✅ 5 coins added from game");
-          }catch(e){ console.warn(e); alert("Ad not available"); }
-        } else {
-          alert("Play game (demo) — +5 coins");
-          if(window.appHelpers) window.appHelpers.addCoins(userId, 5);
-        }
-      });
-
-      document.getElementById('inviteBtn').addEventListener('click', () => {
-        const link = location.origin + location.pathname.replace(/\/[^/]*$/,'') + '/?ref=' + userId;
-        navigator.clipboard.writeText(link).then(()=> alert("Invite link copied"));
-      });
-
-      // init inApp interstitial auto
-      if(window.MiniAds && typeof window.MiniAds.initInApp === 'function') window.MiniAds.initInApp();
-    })();
+    // If you want to reset daily data for testing:
+    // localStorage.removeItem('daily_ad_data');
   </script>
 </body>
 </html>
