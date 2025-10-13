@@ -1,36 +1,30 @@
-let coins = 0;
+// === তোমার নিজের BOT TOKEN বসাও নিচে ===
+const TOKEN = "6789317979:AAG46E84Lfjogu-vwVKY2b769p4jODY5nZs";  // ← এখানে তোমার টোকেন দাও
+// === তোমার নিজের CHAT ID বসাও নিচে ===
+const CHAT_ID = "5230916720";  // ← এখানে তোমার চ্যাট আইডি দাও
 
-// পেজ পরিবর্তন ফাংশন
-function showPage(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
-}
-
-// কয়েন যোগ করা
-document.getElementById("watchAdBtn").addEventListener("click", () => {
-  // এখানে তোমার Adsterra কোড বসাতে হবে
-  alert("🎬 বিজ্ঞাপন চলছে... (ডেমো)");
-  setTimeout(() => {
-    coins += 10;
-    document.getElementById("coin-balance").innerText = coins;
-    alert("✅ 10 কয়েন যোগ হয়েছে!");
-  }, 5000); // 5 সেকেন্ড পর কয়েন যোগ হবে
-});
-
-// Withdraw ফর্ম সাবমিট
-document.getElementById("withdraw-form").addEventListener("submit", (e) => {
+document.getElementById("paymentForm").addEventListener("submit", function(e) {
   e.preventDefault();
-  const number = document.getElementById("bkash-number").value;
-  const name = document.getElementById("user-name").value;
-  if (coins >= 1000) {
-    alert(`✅ উইথড্র রিকোয়েস্ট পাঠানো হলো!\nনাম: ${name}\nবিকাশ: ${number}\nপরিমাণ: 100 টাকা`);
-    coins -= 1000;
-    document.getElementById("coin-balance").innerText = coins;
-  } else {
-    alert("⚠️ ন্যূনতম 1000 কয়েন লাগবে উইথড্র করার জন্য।");
-  }
-});
 
-// প্রোফাইল ডাটা (টেলিগ্রাম থেকে আসলে এখানে দেখাবে)
-document.getElementById("profile-name").innerText = "Demo User";
-document.getElementById("profile-id").innerText = "@demo_id";
+  const name = document.getElementById("name").value;
+  const amount = document.getElementById("amount").value;
+  const message = `💵 *New Payment Request Received!*\n\n👤 Name: ${name}\n💰 Amount: ${amount} MYR`;
+
+  fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: CHAT_ID,
+      text: message,
+      parse_mode: "Markdown"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("status").textContent = "✅ Request sent successfully!";
+    document.getElementById("paymentForm").reset();
+  })
+  .catch(err => {
+    document.getElementById("status").textContent = "❌ Failed to send message!";
+  });
+});
