@@ -2,18 +2,17 @@
    Design: Pro-App UI (Mobile First)
 */
 
+/* ১. আগের মেইন অ্যাপ ডিজাইন (এগুলো থাকবে) */
 :root {
-    --primary: #fe2c55; /* Pro Red */
-    --secondary: #25f4ee; /* Neon Cyan */
+    --primary: #fe2c55;
+    --secondary: #25f4ee;
     --bg-dark: #000000;
     --glass: rgba(255, 255, 255, 0.1);
     --text: #ffffff;
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    margin: 0; padding: 0; box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
     -webkit-tap-highlight-color: transparent;
 }
@@ -23,120 +22,62 @@ body.app-body {
     color: var(--text);
     height: 100vh;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
 }
 
-/* App Header */
-.app-header {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    height: 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-    z-index: 100;
-}
-
-.logo {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 22px;
-    font-weight: bold;
-    color: var(--primary);
-}
-
-.header-tabs span {
-    margin: 0 10px;
-    font-size: 16px;
-    font-weight: 600;
-    opacity: 0.6;
-}
-
-.header-tabs span.active {
-    opacity: 1;
-    border-bottom: 2px solid var(--text);
-}
-
-/* Full Screen Video Container */
-.video-scroll-container {
-    flex: 1;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    height: 100vh;
-}
-
-/* Bottom Navigation Bar */
+/* ২. নিচের মেনু এবং হেডার ডিজাইন (এগুলো থাকবে) */
 .app-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    height: 65px;
-    background: #000;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 0.5px solid #222;
-    z-index: 100;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #888;
-    text-decoration: none;
-    font-size: 10px;
-}
-
-.nav-item i {
-    font-size: 20px;
-    margin-bottom: 4px;
-}
-
-.nav-item.active {
-    color: #fff;
-}
-
-/* Specialized Upload Button */
-.upload-center {
-    position: relative;
-    top: -5px;
+    position: fixed; bottom: 0; width: 100%; height: 65px;
+    background: #000; display: flex; justify-content: space-around;
+    align-items: center; border-top: 0.5px solid #222; z-index: 100;
 }
 
 .plus-icon {
-    width: 45px;
-    height: 30px;
-    background: linear-gradient(to right, var(--secondary) 20%, var(--primary) 80%);
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #000;
-    font-size: 18px;
+    width: 45px; height: 30px;
+    background: linear-gradient(to right, var(--secondary), var(--primary));
+    border-radius: 8px; display: flex; justify-content: center; align-items: center;
 }
 
-/* Loading Spinner */
-.loading-screen {
-    height: 100%;
+/* --- ৩. নতুন যোগ করা কোড (লাইক, কমেন্ট, শেয়ার বাটন) --- */
+
+.video-actions {
+    position: absolute;
+    right: 15px; /* ডান পাশে */
+    bottom: 120px; /* নিচের মেনুর একটু উপরে */
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    gap: 20px;
+    z-index: 90;
 }
 
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--glass);
-    border-top: 4px solid var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+.action-btn {
+    text-align: center;
+    color: white;
+    cursor: pointer;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.action-btn i {
+    font-size: 30px; /* বড় আইকন */
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    transition: 0.2s;
+}
+
+.action-btn span {
+    font-size: 12px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+}
+
+/* লাইক বাটনে চাপ দিলে লাল হবে */
+.action-btn i.fa-heart:active {
+    color: #fe2c55;
+    transform: scale(1.3);
+}
+
+/* ৪. আপলোড ও ওয়ালেট পেজের বাড়তি ডিজাইন */
+.input-field {
+    width: 100%; padding: 12px; margin-top: 15px;
+    background: #222; border: 1px solid #444;
+    color: white; border-radius: 10px; outline: none;
 }
