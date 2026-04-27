@@ -2,47 +2,60 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SojiDa - Video Sharing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SojiDa | Official App</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://alwingulla.com/88/pfe/current/tag.min.js?z=YOUR_ZONE_ID" async data-cfasync="false"></script>
 </head>
-<body>
+<body class="app-body">
 
-    <div class="top-nav">
-        <span>SojiDa</span>
-        <div class="top-tabs">
-            <span>Following</span>
+    <header class="app-header">
+        <div class="logo">SojiDa</div>
+        <div class="header-tabs">
             <span class="active">For You</span>
+            <span>Following</span>
         </div>
-    </div>
+        <div class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+    </header>
 
-    <div id="video-feed" class="video-container">
-        <div class="loading">লোডিং ভিডিও...</div>
-    </div>
-
-    <div class="bottom-nav">
-        <i class="fas fa-home"></i>
-        <i class="fas fa-search"></i>
-        <label for="video-upload" class="upload-btn">
-            <i class="fas fa-plus"></i>
-        </label>
-        <input type="file" id="video-upload" accept="video/*" style="display:none;">
-        <i class="fas fa-comment-dots"></i>
-        <i class="fas fa-user" onclick="showProfile()"></i>
-    </div>
-
-    <div id="upload-modal" class="modal">
-        <div class="modal-content">
-            <p id="upload-status">ভিডিও আপলোড হচ্ছে...</p>
-            <div class="progress-bar"><div id="progress" class="progress"></div></div>
+    <main id="video-container" class="video-scroll-container">
+        <div class="loading-screen">
+            <div class="spinner"></div>
+            <p>ভিডিও লোড হচ্ছে...</p>
         </div>
-    </div>
+    </main>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <nav class="app-bottom-nav">
+        <a href="index.html" class="nav-item active">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <i class="fa-solid fa-message"></i>
+            <span>Chat</span>
+        </a>
+        <a href="upload.html" class="nav-item upload-center">
+            <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
+        </a>
+        <a href="wallet.html" class="nav-item">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Earning</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
     <script src="app.js"></script>
 </body>
 </html>
