@@ -2,42 +2,143 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>SojiDa | Upload Video</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { background: #000; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .upload-card {
-            width: 100%; max-width: 500px; background: #111; padding: 30px; 
-            border-radius: 20px; border: 1px dashed #333; text-align: center; margin-top: 50px;
+        body { background: #000; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .upload-container { width: 100%; max-width: 500px; margin-top: 40px; }
+        .upload-box {
+            width: 100%; background: #111; padding: 40px 20px; 
+            border-radius: 20px; border: 2px dashed #333; text-align: center;
+            transition: 0.3s;
         }
+        .upload-box:active { border-color: #fe2c55; background: #1a1a1a; }
         .upload-icon { font-size: 50px; color: #fe2c55; margin-bottom: 15px; }
         .file-input { display: none; }
-        .custom-file-upload { 
+        .select-label { 
             background: #fe2c55; color: white; padding: 12px 25px; 
-            border-radius: 10px; cursor: pointer; display: inline-block; font-weight: bold;
+            border-radius: 10px; cursor: pointer; display: inline-block; font-weight: bold; margin-top: 10px;
         }
-        .input-field { width: 100%; padding: 12px; margin-top: 20px; background: #222; border: 1px solid #444; color: #fff; border-radius: 10px; }
-        .post-btn { width: 100%; padding: 15px; background: #25f4ee; border: none; border-radius: 10px; color: #000; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        
+        /* Progress Bar Style */
+        #upload-status { display: none; margin-top: 25px; text-align: left; }
+        .progress-bg { background: #222; border-radius: 10px; height: 12px; overflow: hidden; margin-top: 8px; }
+        .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #25f4ee, #fe2c55); transition: 0.3s; box-shadow: 0 0 10px #25f4ee; }
+        
+        .input-field { width: 100%; padding: 15px; margin-top: 15px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; }
+        .post-btn { width: 100%; padding: 16px; background: #25f4ee; border: none; border-radius: 12px; color: #000; font-weight: bold; margin-top: 25px; cursor: pointer; font-size: 16px; }
+        .post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: white; margin-top: 20px;">নতুন ভিডিও ছাড়ুন</h2>
+    <div class="upload-container">
+        <h2 style="color: white; margin-bottom: 20px; text-align: center;">নতুন ভিডিও ছাড়ুন</h2>
 
-    <div class="upload-card">
-        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-        <p style="color: #888; margin-bottom: 20px;">ভিডিও ফাইল সিলেক্ট করুন (MP4)</p>
-        <label for="video-upload" class="custom-file-upload">ফাইল বেছে নিন</label>
-        <input id="video-upload" type="file" class="file-input" accept="video/*">
+        <div class="upload-box">
+            <i class="fa-solid fa-video upload-icon"></i>
+            <p style="color: #888;">গ্যালারি থেকে ভিডিও ফাইল বেছে নিন</p>
+            <label for="video-upload" class="select-label">ফাইল সিলেক্ট করুন</label>
+            <input id="video-upload" type="file" class="file-input" accept="video/*" onchange="showFileName()">
+            <p id="file-name" style="color: #25f4ee; margin-top: 10px; font-size: 12px;"></p>
+        </div>
+
+        <div id="upload-status">
+            <p id="status-text" style="color: #fff; font-size: 14px;">আপলোড হচ্ছে: 0%</p>
+            <div class="progress-bg">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <input type="text" id="video-caption" class="input-field" placeholder="ভিডিওর ক্যাপশন লিখুন...">
+        <button id="post-btn" class="post-btn" onclick="startUpload()">ভিডিও পাবলিশ করুন</button>
     </div>
 
-    <div style="width: 100%; max-width: 500px;">
-        <input type="text" class="input-field" placeholder="ভিডিওর ক্যাপশন লিখুন...">
-        <input type="text" class="input-field" placeholder="#Hashtags (যেমন: #SojiDa #Fun)">
-        <button class="post-btn">পাবলিশ করুন</button>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // আপনার দেওয়া অরিজিনাল ডাটা
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
+            authDomain: "sojida.firebaseapp.com",
+            databaseURL: "https://sojida-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sojida",
+            storageBucket: "sojida.firebasestorage.app",
+            messagingSenderId: "194824640211",
+            appId: "1:194824640211:web:2149cd020f898f40996626",
+            measurementId: "G-6JVLZVLH7Q"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dlpwdx288/video/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "video_upload";
+
+        function showFileName() {
+            const file = document.getElementById('video-upload').files[0];
+            if(file) document.getElementById('file-name').innerText = "সিলেক্ট করা হয়েছে: " + file.name;
+        }
+
+        async function startUpload() {
+            const file = document.getElementById('video-upload').files[0];
+            const caption = document.getElementById('video-caption').value;
+            const postBtn = document.getElementById('post-btn');
+            const statusDiv = document.getElementById('upload-status');
+            const progressBar = document.getElementById('progress-bar');
+            const statusText = document.getElementById('status-text');
+
+            if (!file) return alert("প্রথমে একটি ভিডিও ফাইল সিলেক্ট করুন!");
+
+            // UI আপডেট
+            statusDiv.style.display = "block";
+            postBtn.disabled = true;
+            postBtn.innerText = "প্রসেসিং...";
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+            // Cloudinary তে আপলোড শুরু (Axios বা XMLHttpRequest ব্যবহার করলে প্রগ্রেস নিখুঁত হয়, এখানে Fetch ব্যবহার করা হয়েছে)
+            try {
+                statusText.innerText = "Cloudinary তে পাঠানো হচ্ছে...";
+                const response = await fetch(CLOUDINARY_URL, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.secure_url) {
+                    statusText.innerText = "লিঙ্ক ফায়ারবেসে সেভ হচ্ছে...";
+                    progressBar.style.width = "100%";
+                    
+                    // ফায়ারবেসে সেভ করা
+                    await db.collection("videos").add({
+                        url: data.secure_url,
+                        caption: caption,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        likes: 0,
+                        views: 0
+                    });
+
+                    alert("অভিনন্দন! ভিডিও সফলভাবে আপলোড হয়েছে।");
+                    window.location.href = "index.html";
+                } else {
+                    throw new Error("Upload failed");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("আপলোড ব্যর্থ হয়েছে! প্রেসেট বা ইন্টারনেট চেক করুন।");
+                postBtn.disabled = false;
+                postBtn.innerText = "আবার চেষ্টা করুন";
+            }
+        }
+    </script>
 
     <nav class="app-bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
@@ -46,6 +147,5 @@
         <a href="wallet.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Earning</span></a>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>Profile</span></a>
     </nav>
-
 </body>
 </html>
