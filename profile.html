@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SojiDa | আমার প্রোফাইল</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #000; color: white; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Profile Header Design */
+        .profile-container { flex: 1; padding-bottom: 80px; overflow-y: auto; scrollbar-width: none; }
+        .profile-container::-webkit-scrollbar { display: none; }
+
+        .profile-top {
+            padding: 40px 20px 20px; text-align: center;
+            background: linear-gradient(180deg, rgba(254, 44, 85, 0.15) 0%, #000 100%);
+        }
+
+        .avatar-ring {
+            width: 105px; height: 105px; border-radius: 50%; margin: 0 auto 15px;
+            padding: 4px; background: linear-gradient(45deg, #fe2c55, #25f4ee);
+            box-shadow: 0 0 20px rgba(254, 44, 85, 0.4);
+        }
+        .user-pic { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #000; }
+
+        .user-info h2 { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+        .user-info p { font-size: 13px; color: #888; }
+        .verify-badge { color: #25f4ee; font-size: 14px; margin-left: 5px; }
+
+        /* Stats Row */
+        .stats-row { display: flex; justify-content: space-around; margin: 25px 0; border-top: 1px solid #1a1a1a; padding-top: 15px; }
+        .stat-box { text-align: center; }
+        .stat-box h3 { font-size: 18px; color: #fff; }
+        .stat-box p { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Action Buttons */
+        .profile-btns { display: flex; gap: 10px; padding: 0 20px; margin-bottom: 25px; }
+        .p-btn { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 14px; border: none; cursor: pointer; }
+        .edit-btn { background: #1a1a1a; color: white; border: 1px solid #333; }
+        .share-btn { background: #fe2c55; color: white; }
+        .logout-icon { width: 45px; background: #1a1a1a; color: #888; border: 1px solid #333; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; }
+
+        /* Video Tabs & Grid */
+        .video-tabs { display: flex; border-bottom: 0.5px solid #222; }
+        .tab-item { flex: 1; padding: 15px; text-align: center; color: #555; font-size: 20px; transition: 0.3s; }
+        .tab-item.active { color: white; border-bottom: 2px solid white; }
+
+        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
+        .grid-post { aspect-ratio: 9/16; background: #0a0a0a; position: relative; overflow: hidden; }
+        .grid-post video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .grid-views { position: absolute; bottom: 8px; left: 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; color: #fff; text-shadow: 0 1px 3px #000; }
+    </style>
+</head>
+<body class="app-body">
+
+    <div class="profile-container">
+        <div class="profile-top">
+            <div class="avatar-ring">
+                <img src="https://via.placeholder.com/150" id="profile-img" class="user-pic">
+            </div>
+            <div class="user-info">
+                <h2 id="display-name">লোড হচ্ছে... <i class="fa-solid fa-circle-check verify-badge"></i></h2>
+                <p id="display-handle">@ইউজার_আইডি</p>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box"><h3>250</h3><p>অনুসরণ</p></div>
+                <div class="stat-box"><h3>1.5K</h3><p>ফলোয়ার</p></div>
+                <div class="stat-box"><h3>12.4K</h3><p>লাইক</p></div>
+            </div>
+
+            <div class="profile-btns">
+                <button class="p-btn edit-btn">প্রোফাইল এডিট</button>
+                <button class="p-btn share-btn">শেয়ার করুন</button>
+                <div class="logout-icon" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i></div>
+            </div>
+        </div>
+
+        <div class="video-tabs">
+            <div class="tab-item active"><i class="fa-solid fa-grip"></i></div>
+            <div class="tab-item"><i class="fa-solid fa-heart"></i></div>
+            <div class="tab-item"><i class="fa-solid fa-bookmark"></i></div>
+        </div>
+
+        <div class="video-grid" id="user-video-grid">
+            <div class="grid-post"><div class="grid-views"><i class="fa-solid fa-play"></i> ০</div></div>
+            <div class="grid-post"></div>
+            <div class="grid-post"></div>
+        </div>
+    </div>
+
+    <nav class="app-bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Chat</span></a>
+        <a href="upload.html" class="nav-item"><div class="plus-icon"><i class="fa-solid fa-plus"></i></div></a>
+        <a href="wallet.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Earning</span></a>
+        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+    </nav>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // আপনার অরিজিনাল Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
+            authDomain: "sojida.firebaseapp.com",
+            databaseURL: "https://sojida-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sojida",
+            storageBucket: "sojida.firebasestorage.app",
+            messagingSenderId: "194824640211",
+            appId: "1:194824640211:web:2149cd020f898f40996626",
+            measurementId: "G-6JVLZVLH7Q"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ইউজারের তথ্য লোড করা
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // ডাটাবেস থেকে নাম এবং প্রোফাইল পিক আনা
+                db.collection("users").doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('display-name').innerHTML = data.name + ' <i class="fa-solid fa-circle-check verify-badge"></i>';
+                        document.getElementById('display-handle').innerText = "@" + (data.name.toLowerCase().replace(/\s/g, '_'));
+                        if(data.profilePic) document.getElementById('profile-img').src = data.profilePic;
+                    }
+                });
+                loadMyVideos(user.uid);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // ইউজারের আপলোড করা ভিডিওগুলো গ্রিডে দেখানো
+        function loadMyVideos(uid) {
+            const grid = document.getElementById('user-video-grid');
+            db.collection("videos").where("creatorId", "==", uid).get().then((querySnapshot) => {
+                grid.innerHTML = '';
+                if(querySnapshot.empty) {
+                    grid.innerHTML = '<p style="grid-column: span 3; text-align:center; padding: 40px; color:#444;">কোনো ভিডিও নেই</p>';
+                    return;
+                }
+                querySnapshot.forEach((doc) => {
+                    const video = doc.data();
+                    grid.innerHTML += `
+                        <div class="grid-post">
+                            <video src="${video.url}"></video>
+                            <div class="grid-views"><i class="fa-solid fa-play"></i> ${video.views || 0}</div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // লগ-আউট ফাংশন
+        function logoutUser() {
+            if(confirm("আপনি কি সোজিদা থেকে বেরিয়ে যেতে চান?")) {
+                auth.signOut().then(() => { window.location.href = "login.html"; });
+            }
+        }
+    </script>
+</body>
+</html>
