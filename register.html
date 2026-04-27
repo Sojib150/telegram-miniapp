@@ -3,41 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SojiDa | নতুন অ্যাকাউন্ট তৈরি করুন</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>SojiDa | নতুন অ্যাকাউন্ট</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; color: white; }
         .reg-card {
-            width: 100%; max-width: 400px; padding: 30px;
+            width: 100%; max-width: 400px; padding: 35px 25px;
             background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px);
-            border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); text-align: center;
+            border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
-        .bonus-badge {
-            background: linear-gradient(90deg, #25f4ee, #fe2c55);
-            color: #000; font-weight: bold; font-size: 12px; padding: 5px 15px;
-            border-radius: 20px; display: inline-block; margin-bottom: 15px;
-        }
+        .logo-branding { font-family: 'Orbitron', sans-serif; color: #fe2c55; font-size: 35px; margin-bottom: 5px; }
+        .bonus-tag { background: #25f4ee; color: #000; font-weight: bold; font-size: 11px; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 20px; }
         .input-group { position: relative; margin-bottom: 15px; }
         .input-group i { position: absolute; left: 15px; top: 15px; color: #555; }
         .input-group input { 
-            width: 100%; padding: 12px 12px 12px 45px; background: #111; 
-            border: 1px solid #222; border-radius: 12px; color: #fff; outline: none;
+            width: 100%; padding: 13px 13px 13px 45px; background: #111; 
+            border: 1px solid #222; border-radius: 12px; color: #fff; outline: none; transition: 0.3s;
         }
-        .input-group input:focus { border-color: #fe2c55; }
+        .input-group input:focus { border-color: #fe2c55; background: #151515; }
         .reg-btn { 
             width: 100%; padding: 15px; background: #fe2c55; border: none; 
-            border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; 
+            border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px;
         }
+        .reg-btn:active { transform: scale(0.98); }
+        a { color: #25f4ee; text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
 
     <div class="reg-card">
-        <div class="bonus-badge">🎁 জয়েন করলেই ১০ টাকা বোনাস!</div>
-        <h1 style="color: #fe2c55; font-family: 'Orbitron'; margin-bottom: 5px;">SojiDa</h1>
-        <p style="color: #888; font-size: 13px; margin-bottom: 25px;">আপনার ক্রিয়েটর জার্নি শুরু হোক এখান থেকেই</p>
+        <div class="bonus-tag">🎁 নতুন অ্যাকাউন্টে ১০৳ বোনাস</div>
+        <h1 class="logo-branding">SojiDa</h1>
+        <p style="color: #888; font-size: 13px; margin-bottom: 25px;">আপনার ক্রিয়েটর জার্নি শুরু হোক আমাদের সাথে</p>
 
         <div class="input-group">
             <i class="fa-solid fa-user"></i>
@@ -51,18 +51,13 @@
 
         <div class="input-group">
             <i class="fa-solid fa-lock"></i>
-            <input type="password" id="reg-pass" placeholder="নতুন পাসওয়ার্ড">
+            <input type="password" id="reg-pass" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)">
         </div>
 
-        <div class="input-group">
-            <i class="fa-solid fa-gift"></i>
-            <input type="text" id="reg-refer" placeholder="রেফার কোড (থাকলে দিন)">
-        </div>
-
-        <button class="reg-btn" onclick="handleRegister()">অ্যাকাউন্ট তৈরি করুন</button>
+        <button class="reg-btn" id="main-reg-btn" onclick="handleRegister()">অ্যাকাউন্ট তৈরি করুন</button>
         
         <p style="margin-top: 20px; font-size: 13px; color: #666;">
-            আগেই অ্যাকাউন্ট আছে? <a href="login.html" style="color: #25f4ee; text-decoration: none;">লগ-ইন করুন</a>
+            আগেই অ্যাকাউন্ট আছে? <a href="login.html">লগ-ইন করুন</a>
         </p>
     </div>
 
@@ -71,7 +66,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // আপনার দেওয়া আসল ডাটা ব্যবহার করছি
+        // আপনার দেওয়া আসল ডাটা
         const firebaseConfig = {
             apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
             authDomain: "sojida.firebaseapp.com",
@@ -90,8 +85,15 @@
             const name = document.getElementById('reg-name').value;
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-pass').value;
+            const btn = document.getElementById('main-reg-btn');
 
-            if(!name || !email || !pass) return alert("সবগুলো ঘর পূরণ করুন!");
+            if(!name || !email || !pass) {
+                alert("SojiDa: দয়া করে সব তথ্য সঠিকভাবে দিন।");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "অপেক্ষা করুন...";
 
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
@@ -101,17 +103,33 @@
                 await db.collection("users").doc(user.uid).set({
                     name: name,
                     email: email,
-                    balance: 10.00, // জয়েনিং বোনাস
+                    balance: 10.00,
                     uid: user.uid,
                     role: "creator",
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert("অভিনন্দন! ১০ টাকা বোনাসসহ আপনার অ্যাকাউন্ট তৈরি হয়েছে।");
+                alert("SojiDa: অভিনন্দন! আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।");
                 window.location.href = "index.html";
 
             } catch (err) {
-                alert("ভুল হয়েছে: " + err.message);
+                btn.disabled = false;
+                btn.innerText = "অ্যাকাউন্ট তৈরি করুন";
+                
+                // এরর মেসেজ ক্লিনআপ (Firebase নাম রিমুভ করা হয়েছে)
+                console.log("Error Code:", err.code);
+                
+                if (err.code === 'auth/configuration-not-found') {
+                    alert("SojiDa: সার্ভার সেটিংস এখনো সম্পন্ন হয়নি। দয়া করে ফায়ারবেস কনসোলে Email Auth চালু করুন।");
+                } else if (err.code === 'auth/email-already-in-use') {
+                    alert("SojiDa: এই ইমেইলটি দিয়ে ইতিমধ্যে অ্যাকাউন্ট খোলা হয়েছে।");
+                } else if (err.code === 'auth/weak-password') {
+                    alert("SojiDa: পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।");
+                } else if (err.code === 'auth/invalid-email') {
+                    alert("SojiDa: ইমেইল এড্রেসটি সঠিক নয়।");
+                } else {
+                    alert("SojiDa: দুঃখিত, এই মুহূর্তে অ্যাকাউন্ট তৈরি করা যাচ্ছে না। আবার চেষ্টা করুন।");
+                }
             }
         }
     </script>
