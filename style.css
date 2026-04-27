@@ -1,22 +1,142 @@
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-body { background: #000; color: #fff; overflow: hidden; }
+/* SojiDa Master Stylesheet 
+   Design: Pro-App UI (Mobile First)
+*/
 
-.video-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
-.video-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
-video { width: 100%; height: 100%; object-fit: cover; }
+:root {
+    --primary: #fe2c55; /* Pro Red */
+    --secondary: #25f4ee; /* Neon Cyan */
+    --bg-dark: #000000;
+    --glass: rgba(255, 255, 255, 0.1);
+    --text: #ffffff;
+}
 
-.top-nav { position: fixed; top: 0; width: 100%; display: flex; justify-content: center; padding: 15px; z-index: 10; background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent); }
-.top-tabs span { margin: 0 10px; font-weight: bold; opacity: 0.6; }
-.top-tabs .active { opacity: 1; border-bottom: 2px solid white; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
 
-.side-icons { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; align-items: center; }
-.side-icons i { font-size: 30px; margin-bottom: 20px; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-.side-icons span { font-size: 12px; margin-top: -15px; margin-bottom: 15px; }
+body.app-body {
+    background-color: var(--bg-dark);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
 
-.bottom-nav { position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; align-items: center; padding: 15px; background: #000; border-top: 0.5px solid #333; z-index: 10; }
-.upload-btn { background: linear-gradient(to right, #2af598, #009efd); padding: 5px 15px; border-radius: 10px; color: black; }
+/* App Header */
+.app-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    z-index: 100;
+}
 
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20; justify-content: center; align-items: center; }
-.modal-content { background: #222; padding: 20px; border-radius: 10px; width: 80%; text-align: center; }
-.progress-bar { background: #444; height: 10px; border-radius: 5px; margin-top: 10px; }
-.progress { background: #2af598; width: 0%; height: 100%; border-radius: 5px; }
+.logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.header-tabs span {
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 0.6;
+}
+
+.header-tabs span.active {
+    opacity: 1;
+    border-bottom: 2px solid var(--text);
+}
+
+/* Full Screen Video Container */
+.video-scroll-container {
+    flex: 1;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    height: 100vh;
+}
+
+/* Bottom Navigation Bar */
+.app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 65px;
+    background: #000;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 0.5px solid #222;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #888;
+    text-decoration: none;
+    font-size: 10px;
+}
+
+.nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.nav-item.active {
+    color: #fff;
+}
+
+/* Specialized Upload Button */
+.upload-center {
+    position: relative;
+    top: -5px;
+}
+
+.plus-icon {
+    width: 45px;
+    height: 30px;
+    background: linear-gradient(to right, var(--secondary) 20%, var(--primary) 80%);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000;
+    font-size: 18px;
+}
+
+/* Loading Spinner */
+.loading-screen {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--glass);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
