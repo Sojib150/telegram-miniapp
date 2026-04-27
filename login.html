@@ -2,36 +2,109 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SojiDa | Login to Earn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SojiDa | প্রবেশ করুন</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
         .login-card {
-            width: 90%; max-width: 400px; padding: 40px 25px;
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); text-align: center;
+            width: 100%; max-width: 400px; padding: 40px 25px;
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
+            border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); text-align: center;
         }
-        .login-card h1 { font-family: 'Orbitron', sans-serif; color: #fe2c55; font-size: 35px; margin-bottom: 10px; }
-        .input-box { width: 100%; padding: 15px; margin: 10px 0; background: #111; border: 1px solid #333; border-radius: 12px; color: #fff; }
-        .login-btn { width: 100%; padding: 15px; background: #fe2c55; border: none; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .google-btn { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 12px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; cursor: pointer; }
+        .logo-text { font-family: 'Orbitron', sans-serif; color: #fe2c55; font-size: 38px; margin-bottom: 5px; text-shadow: 0 0 15px rgba(254, 44, 85, 0.5); }
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; left: 15px; top: 15px; color: #555; }
+        .input-group input { 
+            width: 100%; padding: 12px 12px 12px 45px; background: #111; 
+            border: 1px solid #222; border-radius: 12px; color: #fff; outline: none; transition: 0.3s;
+        }
+        .input-group input:focus { border-color: #25f4ee; box-shadow: 0 0 10px rgba(37, 244, 238, 0.2); }
+        .login-btn { 
+            width: 100%; padding: 15px; background: #fe2c55; border: none; 
+            border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; font-size: 16px;
+        }
+        .google-btn {
+            width: 100%; padding: 12px; background: #fff; color: #000; border: none;
+            border-radius: 12px; margin-top: 20px; display: flex; align-items: center;
+            justify-content: center; gap: 10px; font-weight: bold; cursor: pointer;
+        }
     </style>
 </head>
 <body>
+
     <div class="login-card">
-        <h1>SojiDa</h1>
-        <p style="color: #888; font-size: 14px; margin-bottom: 25px;">ভিডিও দেখুন, পকেট ভরুন!</p>
-        <input type="email" class="input-box" placeholder="ইমেইল এড্রেস">
-        <input type="password" class="input-box" placeholder="পাসওয়ার্ড">
-        <button class="login-btn">লগ-ইন করুন</button>
-        <div style="margin: 15px 0; color: #444;">অথবা</div>
-        <button class="google-btn">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20"> Google দিয়ে প্রবেশ
+        <h1 class="logo-text">SojiDa</h1>
+        <p style="color: #888; font-size: 14px; margin-bottom: 30px;">ভিডিও দেখুন, নিজের ব্র্যান্ড গড়ুন</p>
+
+        <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="login-email" placeholder="আপনার ইমেইল">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="login-pass" placeholder="পাসওয়ার্ড">
+        </div>
+
+        <button class="login-btn" onclick="handleLogin()">প্রবেশ করুন</button>
+
+        <div style="margin: 20px 0; color: #444; font-size: 12px;">অথবা</div>
+
+        <button class="google-btn" onclick="googleLogin()">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18"> Google দিয়ে প্রবেশ
         </button>
-        <p style="margin-top: 20px; font-size: 13px; color: #666;">অ্যাকাউন্ট নেই? <span style="color: #25f4ee;">রেজিস্ট্রেশন করুন</span></p>
+        
+        <p style="margin-top: 25px; font-size: 13px; color: #666;">
+            নতুন ইউজার? <a href="register.html" style="color: #fe2c55; text-decoration: none; font-weight: 600;">অ্যাকাউন্ট খুলুন</a>
+        </p>
     </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // আপনার অরিজিনাল Firebase ডাটা
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
+            authDomain: "sojida.firebaseapp.com",
+            databaseURL: "https://sojida-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sojida",
+            storageBucket: "sojida.firebasestorage.app",
+            messagingSenderId: "194824640211",
+            appId: "1:194824640211:web:2149cd020f898f40996626",
+            measurementId: "G-6JVLZVLH7Q"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // ইমেইল লগ-ইন
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if(!email || !pass) return alert("ইমেইল ও পাসওয়ার্ড দিন!");
+
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                window.location.href = "index.html";
+            } catch (err) {
+                alert("লগ-ইন ব্যর্থ হয়েছে: " + err.message);
+            }
+        }
+
+        // গুগল লগ-ইন
+        function googleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                window.location.href = "index.html";
+            }).catch((error) => {
+                alert("গুগল লগ-ইন কাজ করছে না!");
+            });
+        }
+    </script>
 </body>
 </html>
