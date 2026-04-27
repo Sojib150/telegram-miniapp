@@ -3,101 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SojiDa | আমার প্রোফাইল</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <title>SojiDa | প্রোফাইল</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    
     <style>
-        body { background: #000; color: white; min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Profile Header Design */
-        .profile-container { flex: 1; padding-bottom: 80px; overflow-y: auto; scrollbar-width: none; }
-        .profile-container::-webkit-scrollbar { display: none; }
+        :root { --primary: #fe2c55; --secondary: #25f4ee; --bg: #000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); color: white; overflow-x: hidden; }
 
-        .profile-top {
-            padding: 40px 20px 20px; text-align: center;
-            background: linear-gradient(180deg, rgba(254, 44, 85, 0.15) 0%, #000 100%);
-        }
+        /* Profile Header */
+        .header { padding: 50px 20px 20px; text-align: center; background: linear-gradient(180deg, #1a1a1a, #000); }
+        .avatar-box { width: 100px; height: 100px; margin: 0 auto 15px; position: relative; }
+        .avatar-box img { width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--primary); padding: 3px; object-fit: cover; }
+        .v-badge { position: absolute; bottom: 5px; right: 5px; color: var(--secondary); background: #000; border-radius: 50%; font-size: 16px; }
 
-        .avatar-ring {
-            width: 105px; height: 105px; border-radius: 50%; margin: 0 auto 15px;
-            padding: 4px; background: linear-gradient(45deg, #fe2c55, #25f4ee);
-            box-shadow: 0 0 20px rgba(254, 44, 85, 0.4);
-        }
-        .user-pic { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #000; }
-
-        .user-info h2 { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
-        .user-info p { font-size: 13px; color: #888; }
-        .verify-badge { color: #25f4ee; font-size: 14px; margin-left: 5px; }
+        .name-section h2 { font-size: 20px; font-weight: 600; }
+        .name-section p { color: #888; font-size: 14px; margin-bottom: 20px; }
 
         /* Stats Row */
-        .stats-row { display: flex; justify-content: space-around; margin: 25px 0; border-top: 1px solid #1a1a1a; padding-top: 15px; }
-        .stat-box { text-align: center; }
-        .stat-box h3 { font-size: 18px; color: #fff; }
-        .stat-box p { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stats { display: flex; justify-content: space-around; margin-bottom: 25px; border-top: 1px solid #222; padding-top: 20px; }
+        .stat-item { text-align: center; }
+        .stat-item h3 { font-size: 18px; }
+        .stat-item p { font-size: 11px; color: #777; text-transform: uppercase; }
 
-        /* Action Buttons */
-        .profile-btns { display: flex; gap: 10px; padding: 0 20px; margin-bottom: 25px; }
-        .p-btn { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 14px; border: none; cursor: pointer; }
-        .edit-btn { background: #1a1a1a; color: white; border: 1px solid #333; }
-        .share-btn { background: #fe2c55; color: white; }
-        .logout-icon { width: 45px; background: #1a1a1a; color: #888; border: 1px solid #333; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; }
+        /* Buttons */
+        .action-btns { display: flex; gap: 10px; padding: 0 20px; margin-bottom: 30px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .btn-edit { background: #222; color: white; border: 1px solid #333; }
+        .btn-share { background: var(--primary); color: white; }
+        .btn-logout { width: 50px; background: #1a1a1a; color: #888; border: 1px solid #333; border-radius: 8px; }
 
-        /* Video Tabs & Grid */
-        .video-tabs { display: flex; border-bottom: 0.5px solid #222; }
-        .tab-item { flex: 1; padding: 15px; text-align: center; color: #555; font-size: 20px; transition: 0.3s; }
-        .tab-item.active { color: white; border-bottom: 2px solid white; }
+        /* Video Tabs */
+        .tabs { display: flex; border-bottom: 1px solid #222; }
+        .tab { flex: 1; padding: 15px; text-align: center; color: #555; font-size: 22px; cursor: pointer; }
+        .tab.active { color: white; border-bottom: 2px solid white; }
 
-        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
-        .grid-post { aspect-ratio: 9/16; background: #0a0a0a; position: relative; overflow: hidden; }
-        .grid-post video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
-        .grid-views { position: absolute; bottom: 8px; left: 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; color: #fff; text-shadow: 0 1px 3px #000; }
+        /* Video Grid */
+        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; min-height: 200px; }
+        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; }
+        .no-video { grid-column: span 3; text-align: center; padding: 50px; color: #444; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-link { color: #888; text-decoration: none; text-align: center; font-size: 10px; }
+        .nav-link.active { color: white; }
+        .nav-link i { display: block; font-size: 20px; margin-bottom: 2px; }
+        .plus-btn { width: 45px; height: 30px; background: linear-gradient(90deg, var(--secondary), var(--primary)); border-radius: 8px; color: black; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-<body class="app-body">
+<body>
 
-    <div class="profile-container">
-        <div class="profile-top">
-            <div class="avatar-ring">
-                <img src="https://via.placeholder.com/150" id="profile-img" class="user-pic">
-            </div>
-            <div class="user-info">
-                <h2 id="display-name">লোড হচ্ছে... <i class="fa-solid fa-circle-check verify-badge"></i></h2>
-                <p id="display-handle">@ইউজার_আইডি</p>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-box"><h3>250</h3><p>অনুসরণ</p></div>
-                <div class="stat-box"><h3>1.5K</h3><p>ফলোয়ার</p></div>
-                <div class="stat-box"><h3>12.4K</h3><p>লাইক</p></div>
-            </div>
-
-            <div class="profile-btns">
-                <button class="p-btn edit-btn">প্রোফাইল এডিট</button>
-                <button class="p-btn share-btn">শেয়ার করুন</button>
-                <div class="logout-icon" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i></div>
-            </div>
+    <div class="header">
+        <div class="avatar-box">
+            <img src="https://via.placeholder.com/150" id="user-img">
+            <i class="fa-solid fa-circle-check v-badge"></i>
+        </div>
+        <div class="name-section">
+            <h2 id="u-name">SojiDa Creator</h2>
+            <p id="u-handle">@sojida_user</p>
         </div>
 
-        <div class="video-tabs">
-            <div class="tab-item active"><i class="fa-solid fa-grip"></i></div>
-            <div class="tab-item"><i class="fa-solid fa-heart"></i></div>
-            <div class="tab-item"><i class="fa-solid fa-bookmark"></i></div>
+        <div class="stats">
+            <div class="stat-item"><h3>250</h3><p>Following</p></div>
+            <div class="stat-item"><h3>1.5K</h3><p>Followers</p></div>
+            <div class="stat-item"><h3>12K</h3><p>Likes</p></div>
         </div>
 
-        <div class="video-grid" id="user-video-grid">
-            <div class="grid-post"><div class="grid-views"><i class="fa-solid fa-play"></i> ০</div></div>
-            <div class="grid-post"></div>
-            <div class="grid-post"></div>
+        <div class="action-btns">
+            <button class="btn btn-edit">Edit Profile</button>
+            <button class="btn btn-share">Share</button>
+            <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
     </div>
 
-    <nav class="app-bottom-nav">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
-        <a href="messages.html" class="nav-item"><i class="fa-solid fa-message"></i><span>Chat</span></a>
-        <a href="upload.html" class="nav-item"><div class="plus-icon"><i class="fa-solid fa-plus"></i></div></a>
-        <a href="wallet.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Earning</span></a>
-        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+    <div class="tabs">
+        <div class="tab active"><i class="fa-solid fa-grip"></i></div>
+        <div class="tab"><i class="fa-solid fa-heart"></i></div>
+        <div class="tab"><i class="fa-solid fa-bookmark"></i></div>
+    </div>
+
+    <div class="video-grid" id="v-grid">
+        <div class="no-video">কোনো ভিডিও আপলোড করা হয়নি</div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i>Home</a>
+        <a href="messages.html" class="nav-link"><i class="fa-solid fa-comment"></i>Chat</a>
+        <a href="upload.html" class="nav-link"><div class="plus-btn"><i class="fa-solid fa-plus"></i></div></a>
+        <a href="wallet.html" class="nav-link"><i class="fa-solid fa-wallet"></i>Earning</a>
+        <a href="profile.html" class="nav-item active nav-link"><i class="fa-solid fa-user"></i>Profile</a>
     </nav>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -105,7 +100,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // আপনার অরিজিনাল Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
             authDomain: "sojida.firebaseapp.com",
@@ -113,57 +107,30 @@
             projectId: "sojida",
             storageBucket: "sojida.firebasestorage.app",
             messagingSenderId: "194824640211",
-            appId: "1:194824640211:web:2149cd020f898f40996626",
-            measurementId: "G-6JVLZVLH7Q"
+            appId: "1:194824640211:web:2149cd020f898f40996626"
         };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // ইউজারের তথ্য লোড করা
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // ডাটাবেস থেকে নাম এবং প্রোফাইল পিক আনা
+                // ডাটাবেস থেকে তথ্য আনা
                 db.collection("users").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
-                        document.getElementById('display-name').innerHTML = data.name + ' <i class="fa-solid fa-circle-check verify-badge"></i>';
-                        document.getElementById('display-handle').innerText = "@" + (data.name.toLowerCase().replace(/\s/g, '_'));
-                        if(data.profilePic) document.getElementById('profile-img').src = data.profilePic;
+                        document.getElementById('u-name').innerText = data.name || "SojiDa User";
+                        document.getElementById('u-handle').innerText = "@" + user.uid.substring(0,8);
                     }
                 });
-                loadMyVideos(user.uid);
             } else {
-                window.location.href = "login.html";
+                // লগইন করা না থাকলে রিডাইরেক্ট (ডিমো দেখার জন্য এটা অফ রাখতে পারেন)
+                // window.location.href = "login.html";
             }
         });
 
-        // ইউজারের আপলোড করা ভিডিওগুলো গ্রিডে দেখানো
-        function loadMyVideos(uid) {
-            const grid = document.getElementById('user-video-grid');
-            db.collection("videos").where("creatorId", "==", uid).get().then((querySnapshot) => {
-                grid.innerHTML = '';
-                if(querySnapshot.empty) {
-                    grid.innerHTML = '<p style="grid-column: span 3; text-align:center; padding: 40px; color:#444;">কোনো ভিডিও নেই</p>';
-                    return;
-                }
-                querySnapshot.forEach((doc) => {
-                    const video = doc.data();
-                    grid.innerHTML += `
-                        <div class="grid-post">
-                            <video src="${video.url}"></video>
-                            <div class="grid-views"><i class="fa-solid fa-play"></i> ${video.views || 0}</div>
-                        </div>
-                    `;
-                });
-            });
-        }
-
-        // লগ-আউট ফাংশন
-        function logoutUser() {
-            if(confirm("আপনি কি সোজিদা থেকে বেরিয়ে যেতে চান?")) {
-                auth.signOut().then(() => { window.location.href = "login.html"; });
-            }
+        function logout() {
+            auth.signOut().then(() => { window.location.href = "login.html"; });
         }
     </script>
 </body>
