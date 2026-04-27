@@ -1,52 +1,89 @@
 /* SojiDa Master Stylesheet 
    Design: Pro-App UI (Mobile First)
+   Version: 2.0 (Integrated Actions & App Theme)
 */
 
-/* ১. আগের মেইন অ্যাপ ডিজাইন (এগুলো থাকবে) */
 :root {
-    --primary: #fe2c55;
-    --secondary: #25f4ee;
+    --primary: #fe2c55; /* TikTok Red */
+    --secondary: #25f4ee; /* Cyan Accent */
     --bg-dark: #000000;
     --glass: rgba(255, 255, 255, 0.1);
     --text: #ffffff;
 }
 
+/* ১. বেসিক সেটআপ */
 * {
-    margin: 0; padding: 0; box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent; /* মোবাইলে টাচ হাইলাইট বন্ধ করা */
 }
 
 body.app-body {
     background-color: var(--bg-dark);
     color: var(--text);
     height: 100vh;
-    overflow: hidden;
+    overflow: hidden; /* বডি স্ক্রল বন্ধ থাকবে, শুধু ভিডিও কন্টেইনার স্ক্রল হবে */
+    display: flex;
+    flex-direction: column;
 }
 
-/* ২. নিচের মেনু এবং হেডার ডিজাইন (এগুলো থাকবে) */
-.app-bottom-nav {
-    position: fixed; bottom: 0; width: 100%; height: 65px;
-    background: #000; display: flex; justify-content: space-around;
-    align-items: center; border-top: 0.5px solid #222; z-index: 100;
+/* ২. অ্যাপ হেডার (উপরে 'For You' এবং সার্চ) */
+.app-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    z-index: 100;
 }
 
-.plus-icon {
-    width: 45px; height: 30px;
-    background: linear-gradient(to right, var(--secondary), var(--primary));
-    border-radius: 8px; display: flex; justify-content: center; align-items: center;
+.logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--primary);
 }
 
-/* --- ৩. নতুন যোগ করা কোড (লাইক, কমেন্ট, শেয়ার বাটন) --- */
+.header-tabs span {
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 0.6;
+}
 
+.header-tabs span.active {
+    opacity: 1;
+    border-bottom: 2px solid var(--text);
+}
+
+/* ৩. ভিডিও ফিড কন্টেইনার */
+.video-scroll-container {
+    flex: 1;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory; /* ভিডিওগুলো একটা একটা করে থামবে */
+    height: 100vh;
+    scrollbar-width: none; /* ফায়ারফক্সের জন্য স্ক্রলবার হাইড */
+}
+
+.video-scroll-container::-webkit-scrollbar {
+    display: none; /* ক্রোম এবং সাফারির জন্য স্ক্রলবার হাইড */
+}
+
+/* ৪. ভিডিওর সাইড অ্যাকশন বাটন (লাইক, কমেন্ট, শেয়ার) */
 .video-actions {
     position: absolute;
-    right: 15px; /* ডান পাশে */
-    bottom: 120px; /* নিচের মেনুর একটু উপরে */
+    right: 15px;
+    bottom: 120px; /* নিচের মেনুর উপরে থাকবে */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 22px;
     z-index: 90;
 }
 
@@ -57,8 +94,8 @@ body.app-body {
 }
 
 .action-btn i {
-    font-size: 30px; /* বড় আইকন */
-    margin-bottom: 5px;
+    font-size: 32px;
+    margin-bottom: 4px;
     text-shadow: 0 0 10px rgba(0,0,0,0.8);
     transition: 0.2s;
 }
@@ -69,15 +106,91 @@ body.app-body {
     text-shadow: 0 0 5px rgba(0,0,0,0.8);
 }
 
-/* লাইক বাটনে চাপ দিলে লাল হবে */
 .action-btn i.fa-heart:active {
-    color: #fe2c55;
+    color: var(--primary);
     transform: scale(1.3);
 }
 
-/* ৪. আপলোড ও ওয়ালেট পেজের বাড়তি ডিজাইন */
+/* ৫. নিচের মেনু (Bottom Navigation) */
+.app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 65px;
+    background: #000;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 0.5px solid #222;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #888;
+    text-decoration: none;
+    font-size: 10px;
+}
+
+.nav-item i {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.nav-item.active {
+    color: #fff;
+}
+
+/* ৬. আপলোড বাটন ডিজাইন */
+.plus-icon {
+    width: 45px;
+    height: 30px;
+    background: linear-gradient(to right, var(--secondary) 20%, var(--primary) 80%);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000;
+}
+
+/* ৭. অন্যান্য পেজের ইনপুট ফিল্ড ডিজাইন */
 .input-field {
-    width: 100%; padding: 12px; margin-top: 15px;
-    background: #222; border: 1px solid #444;
-    color: white; border-radius: 10px; outline: none;
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 10px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-field:focus {
+    border-color: var(--secondary);
+}
+
+/* ৮. লোডিং স্পিনার */
+.loading-screen {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--glass);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
