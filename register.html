@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SojiDa | নতুন অ্যাকাউন্ট তৈরি করুন</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .reg-card {
+            width: 100%; max-width: 400px; padding: 30px;
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px);
+            border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); text-align: center;
+        }
+        .bonus-badge {
+            background: linear-gradient(90deg, #25f4ee, #fe2c55);
+            color: #000; font-weight: bold; font-size: 12px; padding: 5px 15px;
+            border-radius: 20px; display: inline-block; margin-bottom: 15px;
+        }
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; left: 15px; top: 15px; color: #555; }
+        .input-group input { 
+            width: 100%; padding: 12px 12px 12px 45px; background: #111; 
+            border: 1px solid #222; border-radius: 12px; color: #fff; outline: none;
+        }
+        .input-group input:focus { border-color: #fe2c55; }
+        .reg-btn { 
+            width: 100%; padding: 15px; background: #fe2c55; border: none; 
+            border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="reg-card">
+        <div class="bonus-badge">🎁 জয়েন করলেই ১০ টাকা বোনাস!</div>
+        <h1 style="color: #fe2c55; font-family: 'Orbitron'; margin-bottom: 5px;">SojiDa</h1>
+        <p style="color: #888; font-size: 13px; margin-bottom: 25px;">আপনার ক্রিয়েটর জার্নি শুরু হোক এখান থেকেই</p>
+
+        <div class="input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="reg-name" placeholder="আপনার পুরো নাম">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="reg-email" placeholder="ইমেইল এড্রেস">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="reg-pass" placeholder="নতুন পাসওয়ার্ড">
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-gift"></i>
+            <input type="text" id="reg-refer" placeholder="রেফার কোড (থাকলে দিন)">
+        </div>
+
+        <button class="reg-btn" onclick="handleRegister()">অ্যাকাউন্ট তৈরি করুন</button>
+        
+        <p style="margin-top: 20px; font-size: 13px; color: #666;">
+            আগেই অ্যাকাউন্ট আছে? <a href="login.html" style="color: #25f4ee; text-decoration: none;">লগ-ইন করুন</a>
+        </p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // আপনার দেওয়া আসল ডাটা ব্যবহার করছি
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
+            authDomain: "sojida.firebaseapp.com",
+            databaseURL: "https://sojida-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sojida",
+            storageBucket: "sojida.firebasestorage.app",
+            messagingSenderId: "194824640211",
+            appId: "1:194824640211:web:2149cd020f898f40996626",
+            measurementId: "G-6JVLZVLH7Q"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        async function handleRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            if(!name || !email || !pass) return alert("সবগুলো ঘর পূরণ করুন!");
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
+                const user = userCredential.user;
+
+                // ইউজারের ডাটাবেস তৈরি (১০ টাকা বোনাসসহ)
+                await db.collection("users").doc(user.uid).set({
+                    name: name,
+                    email: email,
+                    balance: 10.00, // জয়েনিং বোনাস
+                    uid: user.uid,
+                    role: "creator",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("অভিনন্দন! ১০ টাকা বোনাসসহ আপনার অ্যাকাউন্ট তৈরি হয়েছে।");
+                window.location.href = "index.html";
+
+            } catch (err) {
+                alert("ভুল হয়েছে: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
