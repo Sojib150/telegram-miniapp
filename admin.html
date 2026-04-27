@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SojiDa | Admin Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #0f0f0f; color: #fff; font-family: 'Poppins', sans-serif; padding: 20px; }
+        .admin-header { border-bottom: 2px solid #fe2c55; padding-bottom: 10px; margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        textarea, input { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; margin-top: 10px; }
+        .btn { width: 100%; padding: 12px; background: #fe2c55; border: none; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        h3 { color: #25f4ee; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>SojiDa মাস্টার কন্ট্রোল</h1>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3><i class="fa-solid fa-rectangle-ad"></i> বিজ্ঞাপন সেটআপ</h3>
+            <label>Monetag বা Adsterra কোড এখানে দিন:</label>
+            <textarea rows="6" id="ad-code" placeholder="বিজ্ঞাপন স্ক্রিপ্ট পেস্ট করুন..."></textarea>
+            <button class="btn" onclick="updateAds()">বিজ্ঞাপন আপডেট করুন</button>
+        </div>
+
+        <div class="card">
+            <h3><i class="fa-solid fa-money-bill-transfer"></i> পেমেন্ট রিকোয়েস্ট</h3>
+            <p>নতুন রিকোয়েস্ট: <span style="color: #2ecc71;">০৫টি</span></p>
+            <button class="btn" style="background: #3498db;">সবগুলো দেখুন</button>
+        </div>
+
+        <div class="card">
+            <h3><i class="fa-solid fa-gears"></i> ইনকাম রেট</h3>
+            <label>প্রতি ১০০০ ভিউতে (৳):</label>
+            <input type="number" value="60">
+            <button class="btn" style="background: #25f4ee; color: #000;">সেভ করুন</button>
+        </div>
+
+        <div class="card">
+            <h3><i class="fa-solid fa-users"></i> ইউজার ম্যানেজমেন্ট</h3>
+            <input type="text" placeholder="ইউজার আইডি খুঁজুন">
+            <button class="btn" style="background: #e67e22;">ব্যান / আনব্যান করুন</button>
+        </div>
+    </div>
+
+    <script>
+        function updateAds() {
+            alert("অভিনন্দন! আপনার বিজ্ঞাপন কোডটি অ্যাপের সব পেজে আপডেট হয়েছে।");
+            // এখানে ফায়ারবেস আপডেট লজিক যোগ হবে
+        }
+    </script>
+</body>
+</html>
