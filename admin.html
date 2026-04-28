@@ -13,45 +13,101 @@
         textarea, input { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; margin-top: 10px; }
         .btn { width: 100%; padding: 12px; background: #fe2c55; border: none; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer; margin-top: 15px; }
         h3 { color: #25f4ee; margin-bottom: 10px; }
+        .status-msg { margin-top: 10px; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="admin-header">
-        <h1>SojiDa মাস্টার কন্ট্রোল</h1>
+        <h1>SojiDa মাস্টার কন্ট্রোল 🛠️</h1>
     </div>
 
     <div class="grid">
         <div class="card">
             <h3><i class="fa-solid fa-rectangle-ad"></i> বিজ্ঞাপন সেটআপ</h3>
             <label>Monetag বা Adsterra কোড এখানে দিন:</label>
-            <textarea rows="6" id="ad-code" placeholder="বিজ্ঞাপন স্ক্রিপ্ট পেস্ট করুন..."></textarea>
+            <textarea rows="6" id="ad-code" placeholder="বিজ্ঞাপন স্ক্রিপ্ট বা আইডি পেস্ট করুন..."></textarea>
             <button class="btn" onclick="updateAds()">বিজ্ঞাপন আপডেট করুন</button>
+            <p id="ad-status" class="status-msg"></p>
         </div>
 
         <div class="card">
             <h3><i class="fa-solid fa-money-bill-transfer"></i> পেমেন্ট রিকোয়েস্ট</h3>
-            <p>নতুন রিকোয়েস্ট: <span style="color: #2ecc71;">০৫টি</span></p>
-            <button class="btn" style="background: #3498db;">সবগুলো দেখুন</button>
+            <p>নতুন রিকোয়েস্ট: <span id="payment-count" style="color: #2ecc71;">০</span>টি</p>
+            <button class="btn" style="background: #3498db;" onclick="location.href='payouts.html'">সবগুলো দেখুন</button>
         </div>
 
         <div class="card">
             <h3><i class="fa-solid fa-gears"></i> ইনকাম রেট</h3>
-            <label>প্রতি ১০০০ ভিউতে (৳):</label>
-            <input type="number" value="60">
-            <button class="btn" style="background: #25f4ee; color: #000;">সেভ করুন</button>
+            <label>প্রতি ভিউতে আয় (৳):</label>
+            <input type="number" id="view-rate" step="0.01" value="0.10">
+            <button class="btn" style="background: #25f4ee; color: #000;" onclick="updateRate()">রেট সেভ করুন</button>
+            <p id="rate-status" class="status-msg"></p>
         </div>
 
         <div class="card">
             <h3><i class="fa-solid fa-users"></i> ইউজার ম্যানেজমেন্ট</h3>
-            <input type="text" placeholder="ইউজার আইডি খুঁজুন">
-            <button class="btn" style="background: #e67e22;">ব্যান / আনব্যান করুন</button>
+            <input type="text" id="target-user-id" placeholder="ইউজার আইডি দিন">
+            <button class="btn" style="background: #e67e22;" onclick="banUser()">ব্যান / আনব্যান করুন</button>
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <script>
-        function updateAds() {
-            alert("অভিনন্দন! আপনার বিজ্ঞাপন কোডটি অ্যাপের সব পেজে আপডেট হয়েছে।");
-            // এখানে ফায়ারবেস আপডেট লজিক যোগ হবে
+        // আপনার অরিজিনাল Firebase কনফিগ
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
+            authDomain: "sojida.firebaseapp.com",
+            databaseURL: "https://sojida-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sojida",
+            storageBucket: "sojida.firebasestorage.app",
+            messagingSenderId: "194824640211",
+            appId: "1:194824640211:web:2149cd020f898f40996626"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // বিজ্ঞাপন আপডেট ফাংশন
+        async function updateAds() {
+            const adCode = document.getElementById('ad-code').value;
+            try {
+                await db.collection("settings").doc("ads").set({
+                    activeAdCode: adCode,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('ad-status').innerText = "✅ বিজ্ঞাপন সফলভাবে আপডেট হয়েছে!";
+                document.getElementById('ad-status').style.color = "#2ecc71";
+            } catch (error) {
+                console.error(error);
+                alert("সমস্যা হয়েছে!");
+            }
+        }
+
+        // ইনকাম রেট আপডেট ফাংশন
+        async function updateRate() {
+            const newRate = document.getElementById('view-rate').value;
+            try {
+                await db.collection("settings").doc("rates").set({
+                    perView: parseFloat(newRate)
+                });
+                document.getElementById('rate-status').innerText = "✅ নতুন রেট সেভ হয়েছে!";
+            } catch (e) { alert("Error updating rate"); }
+        }
+
+        // রিয়েল টাইমে পেমেন্ট রিকোয়েস্ট চেক করা
+        db.collection("withdrawals").where("status", "==", "pending").onSnapshot(snap => {
+            document.getElementById('payment-count').innerText = snap.size;
+        });
+
+        // ইউজার ব্যান করার লজিক (নিরাপত্তার জন্য সিম্পল রাখা হয়েছে)
+        function banUser() {
+            const uid = document.getElementById('target-user-id').value;
+            if(!uid) return alert("আইডি দিন");
+            if(confirm("আপনি কি নিশ্চিত?")) {
+                db.collection("users").doc(uid).update({ status: 'banned' });
+                alert("ইউজার ব্যান করা হয়েছে।");
+            }
         }
     </script>
 </body>
