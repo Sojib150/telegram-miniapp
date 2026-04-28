@@ -7,7 +7,6 @@ const firebaseConfig = {
   storageBucket: "sojida.firebasestorage.app",
   messagingSenderId: "194824640211",
   appId: "1:194824640211:web:2149cd020f898f40996626",
-  measurementId: "G-6JVLZVLH7Q"
 };
 
 // Initialize Firebase
