@@ -10,9 +10,9 @@
     <style>
         :root { --primary: #fe2c55; --secondary: #25f4ee; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: #000; color: #fff; overflow: hidden; }
+        body { background: #000; color: #fff; overflow: hidden; position: fixed; width: 100%; }
 
-        /* Video Feed */
+        /* Video Feed Container */
         .video-wrapper {
             height: 100vh; width: 100vw;
             scroll-snap-type: y mandatory;
@@ -29,52 +29,57 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        video { width: 100%; height: 100%; object-fit: cover; }
+        video { width: 100%; height: 100%; object-fit: cover; pointer-events: auto; }
 
-        /* Overlay UI */
+        /* Sidebar UI */
         .sidebar {
-            position: absolute; right: 15px; bottom: 100px;
-            display: flex; flex-direction: column; gap: 20px; align-items: center;
-            z-index: 10;
+            position: absolute; right: 15px; bottom: 120px;
+            display: flex; flex-direction: column; gap: 25px; align-items: center;
+            z-index: 100;
         }
-        .icon-btn { text-align: center; cursor: pointer; color: white; text-shadow: 0 0 5px #000; }
-        .icon-btn i { font-size: 30px; }
-        .icon-btn p { font-size: 12px; margin-top: 5px; }
+        .icon-btn { text-align: center; cursor: pointer; color: white; filter: drop-shadow(0 0 5px rgba(0,0,0,1)); }
+        .icon-btn i { font-size: 32px; transition: 0.2s; }
+        .icon-btn i:active { transform: scale(1.2); color: var(--primary); }
+        .icon-btn p { font-size: 13px; margin-top: 5px; font-weight: 600; }
 
+        /* Metadata */
         .video-meta {
-            position: absolute; left: 15px; bottom: 90px; width: 75%;
-            z-index: 10; text-shadow: 0 2px 4px #000;
+            position: absolute; left: 15px; bottom: 100px; width: 70%;
+            z-index: 100; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
         }
-        .video-meta h3 { font-size: 17px; margin-bottom: 5px; color: var(--secondary); }
-        .video-meta p { font-size: 14px; color: #eee; }
+        .video-meta h3 { font-size: 18px; margin-bottom: 8px; color: var(--secondary); font-weight: 600; }
+        .video-meta p { font-size: 14px; color: #fff; opacity: 0.9; line-height: 1.4; }
 
-        /* Nav */
+        /* Navbar */
         .navbar {
-            position: fixed; bottom: 0; width: 100%; height: 65px;
-            background: rgba(0,0,0,0.9); border-top: 1px solid #222;
-            display: flex; justify-content: space-around; align-items: center; z-index: 100;
+            position: fixed; bottom: 0; width: 100%; height: 70px;
+            background: linear-gradient(transparent, #000); 
+            display: flex; justify-content: space-around; align-items: center; z-index: 200;
         }
-        .nav-link { color: #888; text-decoration: none; font-size: 10px; text-align: center; }
-        .nav-link.active { color: white; }
-        .nav-link i { display: block; font-size: 20px; margin-bottom: 3px; }
-        .plus-btn { background: linear-gradient(90deg, var(--secondary), var(--primary)); width: 45px; height: 30px; border-radius: 8px; color: #000; display: flex; align-items: center; justify-content: center; }
+        .nav-link { color: #aaa; text-decoration: none; font-size: 11px; text-align: center; }
+        .nav-link.active { color: #fff; }
+        .nav-link i { display: block; font-size: 22px; margin-bottom: 4px; }
+        .plus-btn { 
+            background: linear-gradient(90deg, var(--secondary), var(--primary)); 
+            width: 48px; height: 32px; border-radius: 10px; color: #000; 
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
 
-        /* Admin Ad Spot */
-        #dynamic-ad-container { position: fixed; top: 0; width: 100%; z-index: 1000; text-align: center; }
+        #ad-box { position: fixed; top: 0; width: 100%; z-index: 1000; }
     </style>
 </head>
 <body>
 
-    <div id="dynamic-ad-container"></div>
+    <div id="ad-box"></div>
 
     <div class="video-wrapper" id="feed">
         </div>
 
     <nav class="navbar">
         <a href="index.html" class="nav-link active"><i class="fa-solid fa-house"></i>Home</a>
-        <a href="messages.html" class="nav-link"><i class="fa-solid fa-message"></i>Chat</a>
+        <a href="messages.html" class="nav-link"><i class="fa-solid fa-comment-dots"></i>Chat</a>
         <a href="upload.html" class="nav-link"><div class="plus-btn"><i class="fa-solid fa-plus"></i></div></a>
-        <a href="wallet.html" class="nav-link"><i class="fa-solid fa-wallet"></i>Earning</a>
+        <a href="wallet.html" class="nav-link"><i class="fa-solid fa-wallet"></i>Wallet</a>
         <a href="profile.html" class="nav-link"><i class="fa-solid fa-user"></i>Profile</a>
     </nav>
 
@@ -95,92 +100,97 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // ১. অ্যাডমিন প্যানেল থেকে বিজ্ঞাপন লোড লজিক
-        function initAds() {
-            db.collection("settings").doc("ads").onSnapshot(doc => {
-                if (doc.exists) {
-                    const adContainer = document.getElementById('dynamic-ad-container');
-                    const adCode = doc.data().activeAdCode;
-                    if(adCode) {
-                        adContainer.innerHTML = ''; // আগের এড পরিষ্কার করা
-                        const script = document.createElement('script');
-                        script.innerHTML = adCode;
-                        adContainer.appendChild(script);
-                    }
-                }
-            });
-        }
-        initAds();
-
-        // ২. ভিডিও লোড করার স্মার্ট অ্যালগরিদম
-        // কোনো এরর এড়াতে আমরা সহজ 'createdAt' অর্ডার ব্যবহার করছি
-        db.collection("videos").orderBy("createdAt", "desc").limit(50).onSnapshot(snapshot => {
-            const feed = document.getElementById('feed');
-            if (snapshot.empty) {
-                feed.innerHTML = '<p style="text-align:center; margin-top:50vh;">কোনো ভিডিও পাওয়া যায়নি!</p>';
-                return;
+        // ১. অ্যাডমিন প্যানেল এড লজিক
+        db.collection("settings").doc("ads").onSnapshot(doc => {
+            if (doc.exists && doc.data().activeAdCode) {
+                const adBox = document.getElementById('ad-box');
+                adBox.innerHTML = '';
+                const script = document.createElement('script');
+                script.innerHTML = doc.data().activeAdCode;
+                adBox.appendChild(script);
             }
-            feed.innerHTML = '';
-            snapshot.forEach(doc => {
-                renderVideo(doc.data(), doc.id);
-            });
-        }, error => {
-            console.error("ফায়ারবেস এরর:", error);
-            document.getElementById('feed').innerHTML = '<p style="text-align:center; padding-top:50vh;">ইনডেক্সিং হচ্ছে... কিছুক্ষণ পর আবার চেক করুন।</p>';
         });
 
-        function renderVideo(data, id) {
-            const card = document.createElement('div');
-            card.className = 'video-card';
-            card.innerHTML = `
-                <video src="${data.url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
-                <div class="sidebar">
-                    <div class="icon-btn" onclick="likeVideo('${id}')"><i class="fa-solid fa-heart"></i><p>${data.likes || 0}</p></div>
-                    <div class="icon-btn"><i class="fa-solid fa-comment"></i><p>০</p></div>
-                    <div class="icon-btn" onclick="shareVideo('${data.url}')"><i class="fa-solid fa-share"></i><p>Share</p></div>
-                </div>
-                <div class="video-meta">
-                    <h3>@${data.creatorName || 'Creator'}</h3>
-                    <p>${data.caption || ''}</p>
-                </div>
-            `;
-            
-            const video = card.querySelector('video');
-            setupEarning(video, data.creatorId, id);
-            document.getElementById('feed').appendChild(card);
-        }
-
-        // ৩. ৫ সেকেন্ড ভিউ লজিক (০.১০ টাকা জমা হবে)
-        function setupEarning(video, creatorId, videoId) {
-            let rewarded = false;
-            video.addEventListener('timeupdate', () => {
-                if (video.currentTime >= 5 && !rewarded) {
-                    rewarded = true;
-                    // ক্রিয়েটরের ব্যালেন্স বাড়ানো
-                    db.collection("users").doc(creatorId).update({
-                        balance: firebase.firestore.FieldValue.increment(0.10)
-                    }).catch(e => console.log("Balance Update Failed: ", e));
-
-                    // ভিডিওর ভিউ কাউন্ট বাড়ানো
-                    db.collection("videos").doc(videoId).update({
-                        views: firebase.firestore.FieldValue.increment(1)
-                    });
-                }
+        // ২. ভিডিও ফিড লজিক
+        db.collection("videos").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const videoId = doc.id;
+                
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <video src="${data.url}" loop playsinline onclick="playPause(this)"></video>
+                    <div class="sidebar">
+                        <div class="icon-btn" onclick="handleLike('${videoId}', this)">
+                            <i class="fa-solid fa-heart"></i>
+                            <p>${data.likes || 0}</p>
+                        </div>
+                        <div class="icon-btn" onclick="alert('কমেন্ট সিস্টেম শীঘ্রই আসছে!')">
+                            <i class="fa-solid fa-comment-dots"></i>
+                            <p>0</p>
+                        </div>
+                        <div class="icon-btn" onclick="handleShare('${data.url}')">
+                            <i class="fa-solid fa-share"></i>
+                            <p>Share</p>
+                        </div>
+                    </div>
+                    <div class="video-meta">
+                        <h3>@${data.creatorName || 'SojiDa_User'}</h3>
+                        <p>${data.caption || ''}</p>
+                    </div>
+                `;
+                feed.appendChild(card);
+                
+                // ৩. আর্নিং লজিক (৫ সেকেন্ড পর ব্যাকগ্রাউন্ডে কাজ করবে)
+                const videoEl = card.querySelector('video');
+                let incomeTracked = false;
+                videoEl.ontimeupdate = () => {
+                    if (videoEl.currentTime >= 5 && !incomeTracked) {
+                        incomeTracked = true;
+                        trackIncome(data.creatorId, videoId);
+                    }
+                };
             });
-        }
+        });
 
-        function likeVideo(id) {
+        function playPause(v) { v.paused ? v.play() : v.pause(); }
+
+        // লাইক কাজ করার লজিক
+        function handleLike(id, btn) {
             db.collection("videos").doc(id).update({
                 likes: firebase.firestore.FieldValue.increment(1)
             });
+            btn.querySelector('i').style.color = "#fe2c55";
+            let p = btn.querySelector('p');
+            p.innerText = parseInt(p.innerText) + 1;
         }
 
-        function shareVideo(url) {
-            if(navigator.share) {
+        // শেয়ার কাজ করার লজিক
+        function handleShare(url) {
+            if (navigator.share) {
                 navigator.share({ title: 'SojiDa Video', url: url });
             } else {
-                alert("লিঙ্ক কপি হয়েছে: " + url);
+                alert("লিঙ্ক কপি করুন: " + url);
             }
+        }
+
+        // ইনকাম এবং ভিউ ট্র্যাকিং (থামা ছাড়া চলবে)
+        async function trackIncome(cId, vId) {
+            if(!cId) return;
+            try {
+                // ১. ভিডিও ভিউ বাড়ানো
+                db.collection("videos").doc(vId).update({
+                    views: firebase.firestore.FieldValue.increment(1)
+                });
+                // ২. ক্রিয়েটর ব্যালেন্স বাড়ানো (১০ পয়সা)
+                db.collection("users").doc(cId).update({
+                    balance: firebase.firestore.FieldValue.increment(0.10)
+                });
+                console.log("SojiDa: Income Tracked!");
+            } catch (e) { console.error("Error: ", e); }
         }
     </script>
 </body>
