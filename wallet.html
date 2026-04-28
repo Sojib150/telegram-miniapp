@@ -2,128 +2,186 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SojiDa | আমার ওয়ালেট</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SojiDa | Wallet</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #fe2c55; --secondary: #25f4ee; --bg: #000; }
-        body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; }
-        
-        /* Wallet Card */
         .wallet-card {
-            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
-            padding: 30px 20px; border-radius: 25px; border: 1px solid #333;
-            text-align: center; margin-top: 20px; position: relative; overflow: hidden;
+            margin: 20px; padding: 30px;
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border-radius: 25px; border: 1px solid #222;
+            text-align: center; position: relative; overflow: hidden;
         }
         .wallet-card::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(254, 44, 85, 0.1) 0%, transparent 70%);
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(37,244,238,0.05) 0%, transparent 70%);
         }
-        .balance-label { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .balance-amount { font-family: 'Orbitron', sans-serif; font-size: 40px; color: var(--secondary); margin: 10px 0; }
-        .currency { font-size: 18px; color: #fff; }
-
-        /* Income Sources */
-        .income-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        .income-box { background: #111; padding: 15px; border-radius: 15px; border: 1px solid #222; text-align: left; }
-        .income-box i { color: var(--primary); font-size: 20px; margin-bottom: 10px; }
-        .income-box h4 { font-size: 12px; color: #666; margin-bottom: 5px; }
-        .income-box p { font-size: 16px; font-weight: bold; }
-
-        /* Withdraw Button */
-        .withdraw-btn {
-            width: 100%; padding: 16px; background: var(--primary); color: white;
-            border: none; border-radius: 15px; font-weight: bold; font-size: 16px;
-            margin-top: 30px; cursor: pointer; transition: 0.3s;
+        .balance-label { color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-amount { font-size: 48px; font-weight: bold; color: var(--secondary); margin: 10px 0; }
+        
+        .withdraw-section { padding: 20px; }
+        .method-card {
+            background: #111; padding: 15px; border-radius: 15px;
+            display: flex; align-items: center; gap: 15px; margin-bottom: 15px;
+            border: 1px solid #222; cursor: pointer;
         }
-        .withdraw-btn:active { transform: scale(0.95); }
+        .method-card i { font-size: 24px; color: var(--primary); }
+        .method-info h4 { font-size: 15px; }
+        .method-info p { font-size: 11px; color: #666; }
 
-        /* Navigation */
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; }
-        .nav-link { color: #555; text-decoration: none; font-size: 10px; text-align: center; }
-        .nav-link.active { color: white; }
-        .nav-link i { display: block; font-size: 20px; margin-bottom: 2px; }
+        .history-list { padding: 0 20px; margin-top: 10px; }
+        .history-item {
+            display: flex; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid #111;
+        }
+        .history-item span { font-size: 13px; color: #aaa; }
+        .history-item .status-pending { color: #e67e22; }
+        .history-item .status-success { color: #2ecc71; }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align: center; font-size: 20px;">SojiDa ওয়ালেট</h2>
+    <div class="header" style="padding: 15px; text-align: center;">
+        <h2>আমার ওয়ালেট</h2>
+    </div>
 
     <div class="wallet-card">
-        <p class="balance-label">মোট ব্যালেন্স</p>
-        <div class="balance-amount"><span id="user-balance">০.০০</span> <span class="currency">৳</span></div>
-        <p style="font-size: 12px; color: #444;">সর্বনিম্ন ৫০ টাকা হলে উইথড্র করা যাবে</p>
+        <p class="balance-label">বর্তমান ব্যালেন্স</p>
+        <h1 class="balance-amount" id="main-balance">0.00 ৳</h1>
+        <p style="font-size: 12px; color: #555;">৫ সেকেন্ড ভিডিও = ০.১০ ৳</p>
     </div>
 
-    <div class="income-grid">
-        <div class="income-box">
-            <i class="fa-solid fa-play"></i>
-            <h4>ভিডিও দেখে আয়</h4>
-            <p id="video-earning">০.০০ ৳</p>
+    <div class="withdraw-section">
+        <h3 style="margin-bottom: 15px; font-size: 16px;">টাকা তোলার মাধ্যম</h3>
+        
+        <div class="method-card" onclick="openWithdraw('bkash')">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+            <div class="method-info">
+                <h4>bKash / Nagad</h4>
+                <p>পার্সোনাল নাম্বারে পেমেন্ট নিন</p>
+            </div>
         </div>
-        <div class="income-box">
-            <i class="fa-solid fa-users"></i>
-            <h4>রেফারেল আয়</h4>
-            <p id="refer-earning">০.০০ ৳</p>
+
+        <div class="method-card" onclick="openWithdraw('mobile_recharge')">
+            <i class="fa-solid fa-bolt"></i>
+            <div class="method-info">
+                <h4>Mobile Recharge</h4>
+                <p>যেকোনো সিমে রিচার্জ নিন</p>
+            </div>
+        </div>
+
+        <button class="publish-btn" style="margin-top: 10px;" onclick="sojiAlert('আগে মাধ্যম সিলেক্ট করুন!')">রিকোয়েস্ট পাঠান</button>
+    </div>
+
+    <div class="history-list">
+        <h3 style="font-size: 16px; margin-bottom: 10px;">লেনদেনের ইতিহাস</h3>
+        <div id="payout-history">
+            <p style="color: #333; text-align: center; font-size: 12px;">কোনো ইতিহাস পাওয়া যায়নি</p>
         </div>
     </div>
 
-    <button class="withdraw-btn" onclick="requestWithdraw()">টাকা তুলুন (Withdraw)</button>
-
-    <div style="margin-top: 40px; border-radius: 15px; background: #0a0a0a; padding: 20px; border: 1px dashed #222;">
-        <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--secondary);">কিভাবে আয় করবেন?</h4>
-        <ul style="font-size: 12px; color: #888; line-height: 20px; padding-left: 15px;">
-            <li>ভিডিও ৫ সেকেন্ড দেখলে ০.০৫ টাকা যোগ হবে।</li>
-            <li>প্রতিটি সফল রেফারে পাবেন ৫.০০ টাকা।</li>
-            <li>বোনাস পয়েন্ট প্রতিদিন রাত ১২টায় ব্যালেন্সে যোগ হয়।</li>
-        </ul>
+    <div id="withdraw-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="w-title">Withdraw</h3>
+                <i class="fa-solid fa-xmark" onclick="closeWithdraw()"></i>
+            </div>
+            <div style="padding-top: 20px;">
+                <input type="number" id="w-amount" placeholder="টাকার পরিমাণ (মিনিমাম ৫০)" style="background: #222; border: none; padding: 15px; width: 100%; border-radius: 10px; color: #fff;">
+                <input type="text" id="w-number" placeholder="আপনার নাম্বার দিন" style="background: #222; border: none; padding: 15px; width: 100%; border-radius: 10px; color: #fff; margin-top: 10px;">
+                <button class="publish-btn" style="margin-top: 20px;" onclick="submitWithdraw()">কনফার্ম করুন</button>
+            </div>
+        </div>
     </div>
 
-    <nav class="nav-bar">
-        <a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i>Home</a>
-        <a href="messages.html" class="nav-link"><i class="fa-solid fa-comment"></i>Chat</a>
-        <a href="upload.html" class="nav-link"><i class="fa-solid fa-plus-square"></i>Upload</a>
-        <a href="wallet.html" class="nav-link active"><i class="fa-solid fa-wallet"></i>Earning</a>
-        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user"></i>Profile</a>
+    <nav class="navbar">
+        <a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-link"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
+        <a href="upload.html" class="nav-link"><div class="plus-btn"><i class="fa-solid fa-plus"></i></div></a>
+        <a href="wallet.html" class="nav-link active"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user"></i><span>Profile</span></a>
     </nav>
+
+    <div id="soji-overlay" class="overlay"></div>
+    <div id="soji-alert" class="alert-box"><h3 id="alert-title">SojiDa</h3><p id="alert-msg"></p><button onclick="closeSojiAlert()">ঠিক আছে</button></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
-            authDomain: "sojida.firebaseapp.com",
-            databaseURL: "https://sojida-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "sojida",
-            storageBucket: "sojida.firebasestorage.app",
-            messagingSenderId: "194824640211",
-            appId: "1:194824640211:web:2149cd020f898f40996626"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        let selectedMethod = '';
 
-        // রিয়েল টাইম ব্যালেন্স আপডেট
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                db.collection("users").doc(user.uid).onSnapshot((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        document.getElementById('user-balance').innerText = data.balance.toFixed(2);
-                        document.getElementById('video-earning').innerText = (data.videoEarning || 0).toFixed(2) + " ৳";
-                        document.getElementById('refer-earning').innerText = (data.referEarning || 0).toFixed(2) + " ৳";
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                db.collection("users").doc(user.uid).onSnapshot(doc => {
+                    if(doc.exists) {
+                        const bal = doc.data().balance || 0;
+                        document.getElementById('main-balance').innerText = bal.toFixed(2) + " ৳";
                     }
                 });
-            } else {
-                window.location.href = "login.html";
+                loadHistory(user.uid);
             }
         });
 
-        function requestWithdraw() {
-            alert("SojiDa: আপনার ব্যালেন্স এখনো ৫০ টাকার কম। কাজ চালিয়ে যান!");
+        function openWithdraw(method) {
+            selectedMethod = method;
+            document.getElementById('w-title').innerText = method.toUpperCase() + " Withdraw";
+            document.getElementById('withdraw-modal').style.bottom = "0";
+        }
+
+        function closeWithdraw() {
+            document.getElementById('withdraw-modal').style.bottom = "-100%";
+        }
+
+        async function submitWithdraw() {
+            const amount = parseFloat(document.getElementById('w-amount').value);
+            const number = document.getElementById('w-number').value;
+            const currentBal = parseFloat(document.getElementById('main-balance').innerText);
+
+            if(!amount || !number) return sojiAlert("সবগুলো ঘর পূরণ করুন!");
+            if(amount < 50) return sojiAlert("সর্বনিম্ন ৫০ টাকা হতে হবে!");
+            if(amount > currentBal) return sojiAlert("আপনার ব্যালেন্স যথেষ্ট নয়!");
+
+            // ডাটাবেসে রিকোয়েস্ট পাঠানো
+            await db.collection("withdraw_requests").add({
+                uid: auth.currentUser.uid,
+                userName: auth.currentUser.displayName || "SojiDa User",
+                amount: amount,
+                number: number,
+                method: selectedMethod,
+                status: "pending",
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // ইউজারের ব্যালেন্স থেকে টাকা কেটে নেওয়া
+            await db.collection("users").doc(auth.currentUser.uid).update({
+                balance: firebase.firestore.FieldValue.increment(-amount)
+            });
+
+            sojiAlert("আপনার রিকোয়েস্ট পাঠানো হয়েছে। ২৪ ঘণ্টার মধ্যে পেমেন্ট পাবেন।", "সফল!");
+            closeWithdraw();
+        }
+
+        function loadHistory(uid) {
+            db.collection("withdraw_requests").where("uid", "==", uid)
+              .orderBy("time", "desc").limit(5).onSnapshot(snap => {
+                const container = document.getElementById('payout-history');
+                if(snap.empty) return;
+                container.innerHTML = '';
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div class="history-item">
+                            <span>${data.amount}৳ (${data.method})</span>
+                            <span class="status-${data.status}">${data.status.toUpperCase()}</span>
+                        </div>
+                    `;
+                });
+            });
         }
     </script>
 </body>
