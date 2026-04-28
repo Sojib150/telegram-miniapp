@@ -3,59 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SojiDa | Official App</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <title>SojiDa | Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="style.css">
-    
-    <script src="https://alwingulla.com/88/pfe/current/tag.min.js?z=YOUR_ZONE_ID" async data-cfasync="false"></script>
+    <style>
+        :root { --primary: #fe2c55; --secondary: #25f4ee; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #000; color: #fff; overflow: hidden; }
+
+        .video-wrapper {
+            height: 100vh; width: 100vw;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+        .video-wrapper::-webkit-scrollbar { display: none; }
+
+        .video-card {
+            height: 100vh; width: 100vw;
+            scroll-snap-align: start;
+            position: relative;
+            background: #000;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        video { width: 100%; height: 100%; object-fit: cover; }
+
+        .sidebar {
+            position: absolute; right: 15px; bottom: 100px;
+            display: flex; flex-direction: column; gap: 20px; align-items: center;
+            z-index: 10;
+        }
+        .icon-btn { text-align: center; cursor: pointer; color: white; }
+        .icon-btn i { font-size: 28px; }
+        .icon-btn p { font-size: 12px; margin-top: 5px; }
+
+        .video-meta {
+            position: absolute; left: 15px; bottom: 90px; width: 75%;
+            z-index: 10;
+        }
+        .video-meta h3 { font-size: 17px; margin-bottom: 5px; color: var(--secondary); }
+        
+        /* Bottom Nav */
+        .navbar {
+            position: fixed; bottom: 0; width: 100%; height: 65px;
+            background: rgba(0,0,0,0.9); border-top: 1px solid #222;
+            display: flex; justify-content: space-around; align-items: center; z-index: 100;
+        }
+        .nav-link { color: #888; text-decoration: none; font-size: 10px; text-align: center; }
+        .nav-link.active { color: white; }
+        .nav-link i { display: block; font-size: 20px; margin-bottom: 3px; }
+        .plus-btn { background: linear-gradient(90deg, var(--secondary), var(--primary)); width: 45px; height: 30px; border-radius: 8px; color: #000; display: flex; align-items: center; justify-content: center; }
+
+        /* Admin Ad Container */
+        #ad-container {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            text-align: center; background: rgba(0,0,0,0.5);
+        }
+    </style>
 </head>
-<body class="app-body">
+<body>
 
-    <header class="app-header">
-        <div class="logo">SojiDa</div>
-        <div class="header-tabs">
-            <span class="active">For You</span>
-            <span>Following</span>
+    <div id="ad-container">
         </div>
-        <div class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-    </header>
 
-    <main id="video-container" class="video-scroll-container">
-        <div class="loading-screen">
-            <div class="spinner"></div>
-            <p>ভিডিও লোড হচ্ছে...</p>
-        </div>
-    </main>
+    <div class="video-wrapper" id="feed"></div>
 
-    <nav class="app-bottom-nav">
-        <a href="index.html" class="nav-item active">
-            <i class="fa-solid fa-house"></i>
-            <span>Home</span>
-        </a>
-        <a href="messages.html" class="nav-item">
-            <i class="fa-solid fa-message"></i>
-            <span>Chat</span>
-        </a>
-        <a href="upload.html" class="nav-item upload-center">
-            <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
-        </a>
-        <a href="wallet.html" class="nav-item">
-            <i class="fa-solid fa-wallet"></i>
-            <span>Earning</span>
-        </a>
-        <a href="profile.html" class="nav-item">
-            <i class="fa-solid fa-user"></i>
-            <span>Profile</span>
-        </a>
+    <nav class="navbar">
+        <a href="index.html" class="nav-link active"><i class="fa-solid fa-house"></i>Home</a>
+        <a href="messages.html" class="nav-link"><i class="fa-solid fa-message"></i>Chat</a>
+        <a href="upload.html" class="nav-link"><div class="plus-btn"><i class="fa-solid fa-plus"></i></div></a>
+        <a href="wallet.html" class="nav-link"><i class="fa-solid fa-wallet"></i>Earning</a>
+        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user"></i>Profile</a>
     </nav>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
-    <script src="app.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
+            authDomain: "sojida.firebaseapp.com",
+            databaseURL: "https://sojida-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sojida",
+            storageBucket: "sojida.firebasestorage.app",
+            messagingSenderId: "194824640211",
+            appId: "1:194824640211:web:2149cd020f898f40996626"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ১. এডমিন নিয়ন্ত্রিত বিজ্ঞাপন লোড করা
+        function loadAdminAds() {
+            db.collection("settings").doc("ads").onSnapshot(doc => {
+                if (doc.exists) {
+                    const adCode = doc.data().activeAdCode;
+                    const adDiv = document.getElementById('ad-container');
+                    adDiv.innerHTML = ''; // পুরনো এড মুছে ফেলা
+                    
+                    const scriptTag = document.createElement('script');
+                    scriptTag.innerHTML = adCode; // এডমিন প্যানেল থেকে পাঠানো স্ক্রিপ্ট
+                    adDiv.appendChild(scriptTag);
+                }
+            });
+        }
+        loadAdminAds();
+
+        // ২. অ্যালগরিদম ভিত্তিক ভিডিও লোড
+        // এটি প্রথমে সবচেয়ে বেশি ভিউ হওয়া ভিডিও এবং তারপর নতুন ভিডিওগুলো দেখাবে
+        db.collection("videos")
+          .orderBy("views", "desc")
+          .orderBy("createdAt", "desc")
+          .limit(20)
+          .onSnapshot(snapshot => {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = '';
+            snapshot.forEach(doc => {
+                renderVideo(doc.data(), doc.id);
+            });
+        });
+
+        function renderVideo(data, id) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `
+                <video src="${data.url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
+                <div class="sidebar">
+                    <div class="icon-btn" onclick="likeVideo('${id}')"><i class="fa-solid fa-heart"></i><p>${data.likes || 0}</p></div>
+                    <div class="icon-btn"><i class="fa-solid fa-comment"></i><p>০</p></div>
+                    <div class="icon-btn"><i class="fa-solid fa-share"></i><p>Share</p></div>
+                </div>
+                <div class="video-meta">
+                    <h3>@${data.creatorName || 'SojiDa_Creator'}</h3>
+                    <p>${data.caption || ''}</p>
+                </div>
+            `;
+            
+            const video = card.querySelector('video');
+            setupEarning(video, data.creatorId, id);
+            document.getElementById('feed').appendChild(card);
+        }
+
+        function setupEarning(video, cId, vId) {
+            let rewarded = false;
+            video.addEventListener('timeupdate', () => {
+                if (video.currentTime >= 5 && !rewarded) {
+                    rewarded = true;
+                    db.collection("users").doc(cId).update({
+                        balance: firebase.firestore.FieldValue.increment(0.10)
+                    });
+                    db.collection("videos").doc(vId).update({
+                        views: firebase.firestore.FieldValue.increment(1)
+                    });
+                }
+            });
+        }
+    </script>
 </body>
 </html>
