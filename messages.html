@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SojiDa | Messages</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 70px); background: #000; }
+        
+        /* Friend List */
+        .friend-list { padding: 15px; border-bottom: 1px solid #222; display: flex; gap: 15px; overflow-x: auto; scrollbar-width: none; }
+        .friend-list::-webkit-scrollbar { display: none; }
+        .friend-circle { text-align: center; min-width: 70px; cursor: pointer; }
+        .friend-circle img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--secondary); object-fit: cover; }
+        .friend-circle p { font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #888; }
+
+        /* Inbox */
+        .inbox-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .chat-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 15px; margin-bottom: 10px; background: #111; cursor: pointer; }
+        .chat-item img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+        .chat-info { flex: 1; }
+        .chat-info h4 { font-size: 15px; color: #fff; }
+        .chat-info p { font-size: 12px; color: #666; margin-top: 2px; }
+
+        /* Chat Window (Hidden by Default) */
+        #chat-window { position: fixed; top: 0; left: 100%; width: 100%; height: 100%; background: #000; z-index: 1000; transition: 0.3s; display: flex; flex-direction: column; }
+        .chat-header { padding: 15px; background: #111; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; }
+        #message-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
+        .msg.sent { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 2px; }
+        .msg.received { align-self: flex-start; background: #222; color: #eee; border-bottom-left-radius: 2px; }
+
+        .chat-input-area { padding: 15px; background: #111; display: flex; gap: 10px; align-items: center; }
+        .chat-input-area input { flex: 1; background: #222; border: none; padding: 12px 15px; border-radius: 25px; color: #fff; outline: none; }
+        .send-btn { background: var(--secondary); color: #000; width: 40px; height: 40px; border-radius: 50%; border: none; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="header" style="padding: 15px 20px;">
+            <h2>মেসেজ</h2>
+        </div>
+
+        <div class="friend-list" id="active-friends">
+            </div>
+
+        <div class="inbox-list" id="inbox-container">
+            <p style="text-align: center; color: #444; margin-top: 50px;">আপনার চ্যাটগুলো এখানে দেখাবে।</p>
+        </div>
+    </div>
+
+    <div id="chat-window">
+        <div class="chat-header">
+            <i class="fa-solid fa-chevron-left" onclick="closeChat()" style="font-size: 20px;"></i>
+            <img id="chat-user-img" src="" style="width: 40px; height: 40px; border-radius: 50%;">
+            <h4 id="chat-user-name">User Name</h4>
+        </div>
+        <div id="message-box"></div>
+        <div class="chat-input-area">
+            <input type="text" id="msg-input" placeholder="মেসেজ লিখুন...">
+            <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-link active"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
+        <a href="upload.html" class="nav-link"><div class="plus-btn"><i class="fa-solid fa-plus"></i></div></a>
+        <a href="wallet.html" class="nav-link"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+    </nav>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+
+    <script>
+        let selectedChatId = null;
+        let chatListener = null;
+
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                loadFriends(user.uid);
+                loadInbox(user.uid);
+            }
+        });
+
+        // ১. ফলো করা ফ্রেন্ডদের লোড করা
+        async function loadFriends(uid) {
+            const snap = await db.collection("users").doc(uid).collection("following").limit(10).get();
+            const container = document.getElementById('active-friends');
+            container.innerHTML = '';
+            
+            snap.forEach(async doc => {
+                const friendData = await db.collection("users").doc(doc.id).get();
+                const d = friendData.data();
+                container.innerHTML += `
+                    <div class="friend-circle" onclick="openChat('${doc.id}', '${d.name}', '${d.photo}')">
+                        <img src="${d.photo || 'https://via.placeholder.com/150'}">
+                        <p>${d.name}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // ২. চ্যাট ওপেন করা
+        function openChat(id, name, img) {
+            selectedChatId = id;
+            document.getElementById('chat-window').style.left = "0";
+            document.getElementById('chat-user-name').innerText = name;
+            document.getElementById('chat-user-img').src = img || 'https://via.placeholder.com/150';
+            loadMessages(id);
+        }
+
+        function closeChat() {
+            document.getElementById('chat-window').style.left = "100%";
+            if(chatListener) chatListener(); // স্টপ লিসেনার
+        }
+
+        // ৩. মেসেজ লোড (রিয়েল-টাইম)
+        function loadMessages(friendId) {
+            const myId = auth.currentUser.uid;
+            const chatId = myId < friendId ? myId + "_" + friendId : friendId + "_" + myId;
+            
+            const msgBox = document.getElementById('message-box');
+            msgBox.innerHTML = '';
+
+            chatListener = db.collection("chats").doc(chatId).collection("messages")
+                .orderBy("time", "asc").onSnapshot(snap => {
+                    msgBox.innerHTML = '';
+                    snap.forEach(doc => {
+                        const m = doc.data();
+                        const type = m.senderId === myId ? 'sent' : 'received';
+                        msgBox.innerHTML += `<div class="msg ${type}">${m.text}</div>`;
+                    });
+                    msgBox.scrollTop = msgBox.scrollHeight;
+                });
+        }
+
+        // ৪. মেসেজ পাঠানো
+        async function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if(!text || !selectedChatId) return;
+
+            const myId = auth.currentUser.uid;
+            const chatId = myId < selectedChatId ? myId + "_" + selectedChatId : selectedChatId + "_" + myId;
+
+            input.value = '';
+            await db.collection("chats").doc(chatId).collection("messages").add({
+                text: text,
+                senderId: myId,
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // ইনবক্স আপডেট (সর্বশেষ মেসেজ)
+            db.collection("chats").doc(chatId).set({
+                lastMsg: text,
+                users: [myId, selectedChatId],
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            }, {merge: true});
+        }
+
+        // ৫. ইনবক্স লিস্ট লোড করা
+        function loadInbox(uid) {
+            db.collection("chats").where("users", "array-contains", uid)
+                .orderBy("time", "desc").onSnapshot(snap => {
+                    const container = document.getElementById('inbox-container');
+                    container.innerHTML = '';
+                    snap.forEach(async doc => {
+                        const data = doc.data();
+                        const friendId = data.users.find(id => id !== uid);
+                        const friendData = await db.collection("users").doc(friendId).get();
+                        const f = friendData.data();
+                        
+                        container.innerHTML += `
+                            <div class="chat-item" onclick="openChat('${friendId}', '${f.name}', '${f.photo}')">
+                                <img src="${f.photo || 'https://via.placeholder.com/150'}">
+                                <div class="chat-info">
+                                    <h4>${f.name}</h4>
+                                    <p>${data.lastMsg}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+        }
+    </script>
+</body>
+</html>
