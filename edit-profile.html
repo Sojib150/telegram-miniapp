@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SojiDa | Edit Profile</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .edit-container { padding: 30px 20px; display: flex; flex-direction: column; align-items: center; }
+        .avatar-edit { position: relative; width: 100px; height: 100px; margin-bottom: 30px; }
+        .avatar-edit img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--secondary); }
+        .camera-icon { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid #000; }
+        
+        .input-group { width: 100%; margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 8px; margin-left: 5px; }
+        .input-group input, .input-group textarea { width: 100%; background: #151515; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; outline: none; }
+        .input-group textarea { height: 100px; resize: none; }
+        
+        .save-btn { width: 100%; background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .save-btn:active { transform: scale(0.98); opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div class="header" style="display: flex; align-items: center; padding: 15px;">
+        <i class="fa-solid fa-chevron-left" onclick="history.back()" style="font-size: 20px; cursor: pointer;"></i>
+        <h2 style="flex: 1; text-align: center; margin-right: 20px;">Edit Profile</h2>
+    </div>
+
+    <div class="edit-container">
+        <div class="avatar-edit" onclick="document.getElementById('img-input').click()">
+            <img id="preview-img" src="https://via.placeholder.com/150" alt="Profile">
+            <div class="camera-icon"><i class="fa-solid fa-camera"></i></div>
+            <input type="file" id="img-input" hidden accept="image/*">
+        </div>
+
+        <div class="input-group">
+            <label>আপনার নাম</label>
+            <input type="text" id="edit-name" placeholder="আপনার নাম লিখুন">
+        </div>
+
+        <div class="input-group">
+            <label>বায়ো (Bio)</label>
+            <textarea id="edit-bio" placeholder="আপনার সম্পর্কে কিছু লিখুন..."></textarea>
+        </div>
+
+        <button class="save-btn" id="save-p-btn" onclick="saveProfile()">পরিবর্তন সেভ করুন</button>
+    </div>
+
+    <div id="soji-overlay" class="overlay"></div>
+    <div id="soji-alert" class="alert-box">
+        <h3 id="alert-title">SojiDa</h3>
+        <p id="alert-msg"></p>
+        <button onclick="closeSojiAlert()">ঠিক আছে</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+
+    <script>
+        let selectedImg = null;
+
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                db.collection("users").doc(user.uid).get().then(doc => {
+                    if(doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('edit-name').value = data.name || "";
+                        document.getElementById('edit-bio').value = data.bio || "";
+                        document.getElementById('preview-img').src = data.photo || "https://via.placeholder.com/150";
+                    }
+                });
+            }
+        });
+
+        document.getElementById('img-input').onchange = (e) => {
+            selectedImg = e.target.files[0];
+            if(selectedImg) {
+                document.getElementById('preview-img').src = URL.createObjectURL(selectedImg);
+            }
+        };
+
+        async function saveProfile() {
+            const name = document.getElementById('edit-name').value;
+            const bio = document.getElementById('edit-bio').value;
+            const btn = document.getElementById('save-p-btn');
+            const uid = auth.currentUser.uid;
+
+            if(!name) return sojiAlert("নাম দেওয়া বাধ্যতামূলক!");
+
+            btn.disabled = true;
+            btn.innerText = "সেভ হচ্ছে...";
+
+            let photoUrl = document.getElementById('preview-img').src;
+
+            // যদি নতুন ছবি সিলেক্ট করা হয়, তবে Cloudinary তে আপলোড হবে
+            if(selectedImg) {
+                const fd = new FormData();
+                fd.append('file', selectedImg);
+                fd.append('upload_preset', 'sojida_users'); // আপনার ইমেজ প্রেসেট
+                
+                try {
+                    const res = await fetch('https://api.cloudinary.com/v1_1/dlpwdx288/image/upload', {
+                        method: 'POST',
+                        body: fd
+                    });
+                    const imgData = await res.json();
+                    photoUrl = imgData.secure_url;
+                } catch(e) {
+                    sojiAlert("ছবি আপলোড ব্যর্থ হয়েছে!");
+                }
+            }
+
+            // ফায়ারবেসে তথ্য আপডেট
+            await db.collection("users").doc(uid).update({
+                name: name,
+                bio: bio,
+                photo: photoUrl
+            });
+
+            sojiAlert("প্রোফাইল সফলভাবে আপডেট করা হয়েছে!", "অভিনন্দন!");
+            btn.disabled = false;
+            btn.innerText = "পরিবর্তন সেভ করুন";
+        }
+    </script>
+</body>
+</html>
