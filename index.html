@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SojiDa | Home</title>
+    <title>SojiDa | Premium Feed</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root { --primary: #fe2c55; --secondary: #25f4ee; }
+        :root { --primary: #fe2c55; --secondary: #25f4ee; --glass: rgba(255, 255, 255, 0.1); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: #000; color: #fff; overflow: hidden; position: fixed; width: 100%; }
+        body { background: #000; color: #fff; overflow: hidden; position: fixed; width: 100%; height: 100%; }
 
-        /* Video Feed Container */
+        /* Video Feed */
         .video-wrapper {
             height: 100vh; width: 100vw;
             scroll-snap-type: y mandatory;
@@ -29,51 +29,76 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        video { width: 100%; height: 100%; object-fit: cover; pointer-events: auto; }
+        video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Sidebar UI */
+        /* Premium UI Overlay */
         .sidebar {
-            position: absolute; right: 15px; bottom: 120px;
-            display: flex; flex-direction: column; gap: 25px; align-items: center;
+            position: absolute; right: 12px; bottom: 130px;
+            display: flex; flex-direction: column; gap: 20px; align-items: center;
             z-index: 100;
         }
-        .icon-btn { text-align: center; cursor: pointer; color: white; filter: drop-shadow(0 0 5px rgba(0,0,0,1)); }
-        .icon-btn i { font-size: 32px; transition: 0.2s; }
-        .icon-btn i:active { transform: scale(1.2); color: var(--primary); }
-        .icon-btn p { font-size: 13px; margin-top: 5px; font-weight: 600; }
-
-        /* Metadata */
-        .video-meta {
-            position: absolute; left: 15px; bottom: 100px; width: 70%;
-            z-index: 100; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        .icon-group { text-align: center; cursor: pointer; }
+        .icon-circle {
+            width: 45px; height: 45px; background: var(--glass);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
         }
-        .video-meta h3 { font-size: 18px; margin-bottom: 8px; color: var(--secondary); font-weight: 600; }
-        .video-meta p { font-size: 14px; color: #fff; opacity: 0.9; line-height: 1.4; }
+        .icon-circle i { font-size: 22px; color: #fff; }
+        .icon-group p { font-size: 11px; margin-top: 5px; font-weight: 500; text-shadow: 0 2px 4px #000; }
+        .liked i { color: var(--primary) !important; transform: scale(1.1); }
+
+        .video-meta {
+            position: absolute; left: 15px; bottom: 100px; width: 75%;
+            z-index: 100;
+        }
+        .video-meta h3 { font-size: 17px; font-weight: 600; color: var(--secondary); margin-bottom: 5px; }
+        .video-meta p { font-size: 13px; color: #f1f1f1; line-height: 1.4; opacity: 0.9; }
+
+        /* Comment Modal */
+        #comment-modal {
+            position: fixed; bottom: -100%; left: 0; width: 100%; height: 60%;
+            background: #111; border-radius: 20px 20px 0 0; z-index: 1000;
+            transition: 0.4s ease; padding: 20px; border-top: 1px solid #333;
+        }
+        .comment-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        #comment-list { height: 75%; overflow-y: auto; font-size: 14px; }
+        .comment-item { margin-bottom: 12px; border-bottom: 0.5px solid #222; padding-bottom: 5px; }
+        .comment-input-box { display: flex; gap: 10px; margin-top: 10px; }
+        .comment-input-box input { flex: 1; padding: 10px; border-radius: 20px; border: none; background: #222; color: #fff; outline: none; }
 
         /* Navbar */
         .navbar {
             position: fixed; bottom: 0; width: 100%; height: 70px;
-            background: linear-gradient(transparent, #000); 
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
             display: flex; justify-content: space-around; align-items: center; z-index: 200;
+            border-top: 0.5px solid #222;
         }
-        .nav-link { color: #aaa; text-decoration: none; font-size: 11px; text-align: center; }
+        .nav-link { color: #777; text-decoration: none; font-size: 10px; text-align: center; }
         .nav-link.active { color: #fff; }
         .nav-link i { display: block; font-size: 22px; margin-bottom: 4px; }
-        .plus-btn { 
-            background: linear-gradient(90deg, var(--secondary), var(--primary)); 
-            width: 48px; height: 32px; border-radius: 10px; color: #000; 
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-        }
+        .plus-btn { background: linear-gradient(45deg, #25f4ee, #fe2c55); width: 45px; height: 30px; border-radius: 8px; color: #000; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 
-        #ad-box { position: fixed; top: 0; width: 100%; z-index: 1000; }
+        #ad-view { position: fixed; top: 0; width: 100%; z-index: 1000; }
     </style>
 </head>
 <body>
 
-    <div id="ad-box"></div>
+    <div id="ad-view"></div>
 
-    <div class="video-wrapper" id="feed">
+    <div class="video-wrapper" id="feed"></div>
+
+    <div id="comment-modal">
+        <div class="comment-header">
+            <h4>Comments</h4>
+            <i class="fa-solid fa-xmark" onclick="closeComments()"></i>
         </div>
+        <div id="comment-list"></div>
+        <div class="comment-input-box">
+            <input type="text" id="c-input" placeholder="Add a comment...">
+            <button onclick="postComment()" style="background:none; border:none; color:var(--secondary); font-weight:bold;">Post</button>
+        </div>
+    </div>
 
     <nav class="navbar">
         <a href="index.html" class="nav-link active"><i class="fa-solid fa-house"></i>Home</a>
@@ -99,41 +124,41 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        let currentVideoId = null;
 
-        // ১. অ্যাডমিন প্যানেল এড লজিক
+        // ১. ডাইনামিক এডমিন এড
         db.collection("settings").doc("ads").onSnapshot(doc => {
-            if (doc.exists && doc.data().activeAdCode) {
-                const adBox = document.getElementById('ad-box');
-                adBox.innerHTML = '';
-                const script = document.createElement('script');
-                script.innerHTML = doc.data().activeAdCode;
-                adBox.appendChild(script);
+            if(doc.exists && doc.data().activeAdCode) {
+                const container = document.getElementById('ad-view');
+                container.innerHTML = '';
+                const sc = document.createElement('script');
+                sc.innerHTML = doc.data().activeAdCode;
+                container.appendChild(sc);
             }
         });
 
-        // ২. ভিডিও ফিড লজিক
+        // ২. ভিডিও লোড
         db.collection("videos").orderBy("createdAt", "desc").onSnapshot(snapshot => {
             const feed = document.getElementById('feed');
             feed.innerHTML = '';
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const videoId = doc.id;
-                
+                const id = doc.id;
                 const card = document.createElement('div');
                 card.className = 'video-card';
                 card.innerHTML = `
-                    <video src="${data.url}" loop playsinline onclick="playPause(this)"></video>
+                    <video src="${data.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
                     <div class="sidebar">
-                        <div class="icon-btn" onclick="handleLike('${videoId}', this)">
-                            <i class="fa-solid fa-heart"></i>
+                        <div class="icon-group" onclick="likeVideo('${id}', this)">
+                            <div class="icon-circle"><i class="fa-solid fa-heart"></i></div>
                             <p>${data.likes || 0}</p>
                         </div>
-                        <div class="icon-btn" onclick="alert('কমেন্ট সিস্টেম শীঘ্রই আসছে!')">
-                            <i class="fa-solid fa-comment-dots"></i>
-                            <p>0</p>
+                        <div class="icon-group" onclick="openComments('${id}')">
+                            <div class="icon-circle"><i class="fa-solid fa-comment-dots"></i></div>
+                            <p>Comments</p>
                         </div>
-                        <div class="icon-btn" onclick="handleShare('${data.url}')">
-                            <i class="fa-solid fa-share"></i>
+                        <div class="icon-group" onclick="shareVideo('${data.url}')">
+                            <div class="icon-circle"><i class="fa-solid fa-share"></i></div>
                             <p>Share</p>
                         </div>
                     </div>
@@ -144,54 +169,64 @@
                 `;
                 feed.appendChild(card);
                 
-                // ৩. আর্নিং লজিক (৫ সেকেন্ড পর ব্যাকগ্রাউন্ডে কাজ করবে)
-                const videoEl = card.querySelector('video');
-                let incomeTracked = false;
-                videoEl.ontimeupdate = () => {
-                    if (videoEl.currentTime >= 5 && !incomeTracked) {
-                        incomeTracked = true;
-                        trackIncome(data.creatorId, videoId);
+                // ৫ সেকেন্ড ইনকাম লজিক
+                const v = card.querySelector('video');
+                let done = false;
+                v.ontimeupdate = () => {
+                    if(v.currentTime >= 5 && !done) {
+                        done = true;
+                        updateIncome(data.creatorId, id);
                     }
                 };
             });
         });
 
-        function playPause(v) { v.paused ? v.play() : v.pause(); }
+        // ৩. ইনকাম ট্র্যাকিং
+        function updateIncome(cId, vId) {
+            if(!cId) return;
+            db.collection("users").doc(cId).update({ balance: firebase.firestore.FieldValue.increment(0.10) });
+            db.collection("videos").doc(vId).update({ views: firebase.firestore.FieldValue.increment(1) });
+        }
 
-        // লাইক কাজ করার লজিক
-        function handleLike(id, btn) {
-            db.collection("videos").doc(id).update({
-                likes: firebase.firestore.FieldValue.increment(1)
-            });
-            btn.querySelector('i').style.color = "#fe2c55";
+        // ৪. লাইক ফিক্স (ডাটাবেস আপডেট লজিক)
+        async function likeVideo(id, btn) {
+            btn.classList.add('liked');
             let p = btn.querySelector('p');
             p.innerText = parseInt(p.innerText) + 1;
+            await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) });
         }
 
-        // শেয়ার কাজ করার লজিক
-        function handleShare(url) {
-            if (navigator.share) {
-                navigator.share({ title: 'SojiDa Video', url: url });
-            } else {
-                alert("লিঙ্ক কপি করুন: " + url);
-            }
+        // ৫. কমেন্ট সিস্টেম
+        function openComments(id) {
+            currentVideoId = id;
+            document.getElementById('comment-modal').style.bottom = "0";
+            loadComments(id);
+        }
+        function closeComments() { document.getElementById('comment-modal').style.bottom = "-100%"; }
+
+        function loadComments(id) {
+            db.collection("videos").doc(id).collection("comments").orderBy("time", "desc").onSnapshot(snap => {
+                const list = document.getElementById('comment-list');
+                list.innerHTML = '';
+                snap.forEach(c => {
+                    const d = c.data();
+                    list.innerHTML += `<div class="comment-item"><strong>${d.user}:</strong> ${d.text}</div>`;
+                });
+            });
         }
 
-        // ইনকাম এবং ভিউ ট্র্যাকিং (থামা ছাড়া চলবে)
-        async function trackIncome(cId, vId) {
-            if(!cId) return;
-            try {
-                // ১. ভিডিও ভিউ বাড়ানো
-                db.collection("videos").doc(vId).update({
-                    views: firebase.firestore.FieldValue.increment(1)
-                });
-                // ২. ক্রিয়েটর ব্যালেন্স বাড়ানো (১০ পয়সা)
-                db.collection("users").doc(cId).update({
-                    balance: firebase.firestore.FieldValue.increment(0.10)
-                });
-                console.log("SojiDa: Income Tracked!");
-            } catch (e) { console.error("Error: ", e); }
+        async function postComment() {
+            const input = document.getElementById('c-input');
+            if(!input.value) return;
+            await db.collection("videos").doc(currentVideoId).collection("comments").add({
+                user: firebase.auth().currentUser?.displayName || "SojiDa User",
+                text: input.value,
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = '';
         }
+
+        function shareVideo(url) { navigator.share ? navigator.share({url: url}) : alert(url); }
     </script>
 </body>
 </html>
