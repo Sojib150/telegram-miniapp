@@ -3,42 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SojiDa | Discover</title>
+    <title>SojiDa | Home</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Trading Algorithm Animation */
-        @keyframes glow { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
-        .trending-tag { position: absolute; top: 80px; left: 15px; background: rgba(254, 44, 85, 0.8); padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; animation: glow 2s infinite; z-index: 10; }
-    </style>
 </head>
 <body>
-
-    <div id="ad-view-top"></div>
-
-    <div class="video-wrapper" id="feed">
-        </div>
-
-    <div id="comment-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>মন্তব্যসমূহ</h3>
-                <i class="fa-solid fa-xmark" onclick="closeComments()"></i>
-            </div>
-            <div id="comment-list"></div>
-            <div class="modal-input">
-                <input type="text" id="c-input" placeholder="আপনার মতামত লিখুন...">
-                <button onclick="postComment()"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div id="soji-overlay" class="overlay"></div>
-    <div id="soji-alert" class="alert-box">
-        <h3 id="alert-title">SojiDa</h3>
-        <p id="alert-msg"></p>
-        <button onclick="closeSojiAlert()">ঠিক আছে</button>
-    </div>
+    <div id="ad-view-top"></div> <div class="video-wrapper" id="feed"></div>
 
     <nav class="navbar">
         <a href="index.html" class="nav-link active"><i class="fa-solid fa-house"></i><span>Home</span></a>
@@ -52,108 +22,37 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
-
     <script>
-        let currentOpenVideo = null;
-
-        // ১. অ্যাডমিন বিজ্ঞাপন লোড
-        db.collection("settings").doc("app_config").onSnapshot(doc => {
-            if(doc.exists && doc.data().adCode) {
-                const container = document.getElementById('ad-view-top');
-                container.innerHTML = '';
-                const script = document.createElement('script');
-                script.innerHTML = doc.data().adCode;
-                container.appendChild(script);
-            }
-        });
-
-        // ২. ট্রেডিং অ্যালগরিদম ভিডিও লোড
-        // লজিক: লাইক ও ভিউ অনুযায়ী সর্ট হবে (ট্রেড সিস্টেম)
-        db.collection("videos").orderBy("likes", "desc").limit(30).onSnapshot(snap => {
+        // ভিডিও লোড ও ইনকাম লজিক
+        db.collection("videos").orderBy("likes", "desc").onSnapshot(snap => {
             const feed = document.getElementById('feed');
             feed.innerHTML = '';
             snap.forEach(doc => {
                 const data = doc.data();
-                const videoId = doc.id;
-                renderVideo(data, videoId);
+                const id = doc.id;
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <video src="${data.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+                    <div class="sidebar">
+                        <div class="icon-group"><i class="fa-solid fa-heart"></i><p>${data.likes || 0}</p></div>
+                    </div>
+                    <div class="video-meta"><h3>@${data.creatorName}</h3><p>${data.caption}</p></div>
+                `;
+                const v = card.querySelector('video');
+                // ৫ সেকেন্ড ইনকাম লজিক
+                let rewarded = false;
+                v.ontimeupdate = () => {
+                    if (v.currentTime >= 5 && !rewarded) {
+                        rewarded = true;
+                        if(auth.currentUser && auth.currentUser.uid !== data.creatorId) {
+                            db.collection("users").doc(data.creatorId).update({ balance: firebase.firestore.FieldValue.increment(0.10) });
+                        }
+                    }
+                };
+                feed.appendChild(card);
             });
         });
-
-        function renderVideo(data, id) {
-            const card = document.createElement('div');
-            card.className = 'video-card';
-            const isTrending = (data.likes + data.views) > 100 ? `<div class="trending-tag">TRENDING</div>` : '';
-            
-            card.innerHTML = `
-                ${isTrending}
-                <video src="${data.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                <div class="sidebar">
-                    <div class="icon-group" onclick="handleLike('${id}', this)">
-                        <div class="icon-circle"><i class="fa-solid fa-heart"></i></div>
-                        <p class="like-count">${data.likes || 0}</p>
-                    </div>
-                    <div class="icon-group" onclick="openComments('${id}')">
-                        <div class="icon-circle"><i class="fa-solid fa-comment-dots"></i></div>
-                        <p>কমেন্ট</p>
-                    </div>
-                    <div class="icon-group" onclick="shareSojiDa('${data.url}')">
-                        <div class="icon-circle"><i class="fa-solid fa-share"></i></div>
-                        <p>শেয়ার</p>
-                    </div>
-                </div>
-                <div class="video-meta">
-                    <h3>@${data.creatorName}</h3>
-                    <p>${data.caption}</p>
-                </div>
-            `;
-            
-            const v = card.querySelector('video');
-            setupIncomeTracking(v, data.creatorId, id);
-            document.getElementById('feed').appendChild(card);
-        }
-
-        // ৩. সিকিউর ইনকাম লজিক (৫ সেকেন্ড + অ্যান্টি-সেলফ ভিউ)
-        function setupIncomeTracking(video, creatorId, videoId) {
-            let rewarded = false;
-            video.ontimeupdate = () => {
-                if (video.currentTime >= 5 && !rewarded) {
-                    rewarded = true;
-                    const currentUser = auth.currentUser;
-                    
-                    // সিকিউরিটি: নিজে নিজের ভিডিও দেখলে টাকা হবে না
-                    if (currentUser && currentUser.uid !== creatorId) {
-                        db.collection("users").doc(creatorId).update({
-                            balance: firebase.firestore.FieldValue.increment(0.10)
-                        });
-                        console.log("Income added to creator");
-                    }
-                    
-                    // ভিউ কাউন্ট সবার জন্য বাড়বে
-                    db.collection("videos").doc(videoId).update({
-                        views: firebase.firestore.FieldValue.increment(1)
-                    });
-                }
-            };
-        }
-
-        // লাইক ফিক্স
-        async function handleLike(id, el) {
-            const icon = el.querySelector('i');
-            if(icon.classList.contains('fa-solid')) {
-                icon.classList.replace('fa-solid', 'fa-regular');
-                await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(-1) });
-            } else {
-                icon.classList.replace('fa-regular', 'fa-solid');
-                icon.style.color = "#fe2c55";
-                await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) });
-            }
-        }
-
-        function shareSojiDa(url) {
-            navigator.share({ title: 'SojiDa Video', url: url }).catch(() => {
-                sojiAlert("লিঙ্ক কপি করা হয়েছে: " + url);
-            });
-        }
     </script>
 </body>
 </html>
