@@ -5,27 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SojiDa | Profile</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body style="background: #000; color: #fff;">
-    <div class="header" style="justify-content: space-between; padding: 0 20px;">
-        <h2>প্রোফাইল</h2>
-        <i class="fa-solid fa-right-from-bracket" onclick="auth.signOut()"></i>
-    </div>
-
-    <div style="text-align: center; padding: 40px 20px;">
-        <img id="p-img" src="https://via.placeholder.com/150" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid #25f4ee;">
-        <h3 id="p-name" style="margin-top: 15px;">Loading...</h3>
-        <p id="p-bio" style="color: #888;">User Bio</p>
-        <button onclick="location.href='edit-profile.html'" style="margin-top: 20px; padding: 10px 30px; border-radius: 20px; border: 1px solid #333; background: none; color: #fff;">Edit Profile</button>
+<body style="background:#000; color:#fff;">
+    <div style="text-align:center; padding:50px 20px;">
+        <img id="u-img" src="https://via.placeholder.com/100" style="width:100px; height:100px; border-radius:50%; border:2px solid #25f4ee;">
+        <h2 id="u-name" style="margin-top:15px;">লোড হচ্ছে...</h2>
+        <p id="u-balance" style="color:#25f4ee; font-size:20px; margin-top:10px;">0.00 ৳</p>
+        <button onclick="auth.signOut()" style="margin-top:30px; padding:10px 25px; border-radius:10px; border:none; background:#fe2c55; color:#fff;">লগআউট</button>
     </div>
 
     <nav class="navbar">
-        <a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Home</span></a>
-        <a href="messages.html" class="nav-link"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
+        <a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i>Home</a>
         <a href="upload.html" class="nav-link"><div class="plus-btn"><i class="fa-solid fa-plus"></i></div></a>
-        <a href="wallet.html" class="nav-link"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
-        <a href="profile.html" class="nav-link active"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+        <a href="profile.html" class="nav-link active"><i class="fa-solid fa-user"></i>Profile</a>
     </nav>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -36,10 +28,11 @@
         auth.onAuthStateChanged(user => {
             if(user) {
                 db.collection("users").doc(user.uid).onSnapshot(doc => {
-                    const d = doc.data();
-                    document.getElementById('p-name').innerText = d.name;
-                    document.getElementById('p-bio').innerText = d.bio;
-                    if(d.photo) document.getElementById('p-img').src = d.photo;
+                    if(doc.exists) {
+                        const d = doc.data();
+                        document.getElementById('u-name').innerText = d.name || "SojiDa User";
+                        document.getElementById('u-balance').innerText = (d.balance || 0).toFixed(2) + " ৳";
+                    }
                 });
             }
         });
