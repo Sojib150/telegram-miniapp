@@ -36,24 +36,29 @@ function closeSojiAlert() {
     document.getElementById('soji-alert').style.display = 'none';
 }
 
-// --- ২. লাইক বাটন লজিক (Fix) ---
+// --- ২. লাইক বাটন লজিক (Real-time UI Update সহ) ---
 async function handleLike(id, el) {
     const user = auth.currentUser;
     if(!user) return sojiAlert("লাইক দিতে লগইন করুন!");
 
     const icon = el.querySelector('i');
     const likeCountEl = el.querySelector('.like-count');
+    let currentLikes = parseInt(likeCountEl.innerText);
     
     if(icon.classList.contains('fa-solid')) {
+        // আনলাইক করা
         icon.classList.replace('fa-solid', 'fa-regular');
         icon.style.color = "#fff";
+        likeCountEl.innerText = currentLikes - 1;
         await db.collection("videos").doc(id).update({ 
             likes: firebase.firestore.FieldValue.increment(-1),
             likedBy: firebase.firestore.FieldValue.arrayRemove(user.uid)
         });
     } else {
+        // লাইক দেওয়া
         icon.classList.replace('fa-regular', 'fa-solid');
         icon.style.color = "#fe2c55";
+        likeCountEl.innerText = currentLikes + 1;
         await db.collection("videos").doc(id).update({ 
             likes: firebase.firestore.FieldValue.increment(1),
             likedBy: firebase.firestore.FieldValue.arrayUnion(user.uid)
@@ -61,17 +66,31 @@ async function handleLike(id, el) {
     }
 }
 
-// --- ৩. শেয়ার বাটন লজিক (Fix) ---
-function shareSojiDa(url) {
-    if (navigator.share) {
-        navigator.share({ title: 'SojiDa Video', url: url });
-    } else {
-        navigator.clipboard.writeText(url);
-        sojiAlert("ভিডিও লিঙ্ক কপি করা হয়েছে!");
-    }
+// --- ৩. ৫ সেকেন্ড ইনকাম ও ভিউ লজিক ---
+function setupIncomeTracking(video, creatorId, videoId) {
+    let rewarded = false;
+    video.ontimeupdate = () => {
+        if (video.currentTime >= 5 && !rewarded) {
+            rewarded = true;
+            const user = auth.currentUser;
+            
+            // নিজে নিজের ভিডিও দেখলে টাকা হবে না
+            if (user && user.uid !== creatorId) {
+                db.collection("users").doc(creatorId).update({
+                    balance: firebase.firestore.FieldValue.increment(0.10)
+                });
+                console.log("Revenue sent to creator!");
+            }
+            
+            // ভিউ কাউন্ট আপডেট
+            db.collection("videos").doc(videoId).update({
+                views: firebase.firestore.FieldValue.increment(1)
+            });
+        }
+    };
 }
 
-// --- ৪. কমেন্ট সিস্টেম (Fix) ---
+// --- ৪. কমেন্ট সিস্টেম ---
 let activeVideoId = null;
 function openComments(videoId) {
     activeVideoId = videoId;
@@ -90,7 +109,7 @@ async function loadComments(videoId) {
         list.innerHTML = "";
         snap.forEach(doc => {
             const d = doc.data();
-            list.innerHTML += `<div style="margin-bottom:10px;"><b>${d.userName}:</b> ${d.text}</div>`;
+            list.innerHTML += `<div class="comment-item"><b>${d.userName}:</b> ${d.text}</div>`;
         });
     });
 }
@@ -101,13 +120,23 @@ async function postComment() {
     
     await db.collection("videos").doc(activeVideoId).collection("comments").add({
         text: input.value,
-        userName: auth.currentUser ? auth.currentUser.displayName : "Guest",
+        userName: auth.currentUser ? (auth.currentUser.displayName || "User") : "Guest",
         time: firebase.firestore.FieldValue.serverTimestamp()
     });
     input.value = "";
 }
 
-// --- ৫. ইউটিলিটি ---
+// --- ৫. শেয়ার লজিক ---
+function shareSojiDa(url) {
+    if (navigator.share) {
+        navigator.share({ title: 'SojiDa Video', url: url });
+    } else {
+        navigator.clipboard.writeText(url);
+        sojiAlert("লিঙ্ক কপি করা হয়েছে!");
+    }
+}
+
+// --- ৬. গ্লোবাল চেক ও রান ---
 function checkAuth() {
     auth.onAuthStateChanged(user => {
         if (!user && !window.location.href.includes('login.html') && !window.location.href.includes('register.html')) {
@@ -116,4 +145,7 @@ function checkAuth() {
     });
 }
 
-console.log("SojiDa Engine: Active & Fixed 🚀");
+// অ্যাপ রান করার সাথে সাথে এই ফাংশনগুলো চালু হবে
+checkAuth(); 
+
+console.log("SojiDa Engine: 100% Fixed & Active 🚀");
