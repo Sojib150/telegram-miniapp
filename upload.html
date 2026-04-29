@@ -2,80 +2,100 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SojiDa | Create</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SojiDa | Create Post</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .upload-container { padding: 20px; padding-bottom: 100px; }
-        .upload-card { background: #111; border-radius: 20px; padding: 20px; border: 1px dashed #333; text-align: center; margin-bottom: 20px; }
-        .upload-card i { font-size: 40px; color: var(--secondary); margin-bottom: 10px; }
+        body { background: #000; color: #fff; }
+        .upload-wrapper { padding: 20px; max-width: 500px; margin: auto; }
         
-        .preview-box { width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 15px; display: none; margin-bottom: 20px; overflow: hidden; }
-        .preview-box video { width: 100%; height: 100%; object-fit: cover; }
+        /* Glassmorphism Upload Box */
+        .upload-area {
+            width: 100%; height: 250px;
+            background: #111; border: 2px dashed #333;
+            border-radius: 20px; display: flex;
+            flex-direction: column; align-items: center;
+            justify-content: center; cursor: pointer;
+            transition: 0.3s; overflow: hidden;
+            position: relative;
+        }
+        .upload-area:hover { border-color: var(--secondary); background: #161616; }
+        .upload-area i { font-size: 50px; color: var(--secondary); margin-bottom: 15px; }
+        .upload-area p { font-size: 14px; color: #888; }
 
-        .setting-row { display: flex; justify-content: space-between; align-items: center; background: #151515; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-        .setting-row label { font-size: 14px; color: #eee; }
-        
-        select, textarea { background: #151515; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 10px; width: 100%; outline: none; margin-bottom: 15px; }
-        textarea { height: 80px; resize: none; }
+        #preview-vid {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0; display: none;
+        }
 
-        .publish-btn { background: linear-gradient(45deg, var(--secondary), var(--primary)); color: #000; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; }
+        .meta-box { margin-top: 25px; }
+        .input-group { background: #111; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #222; }
+        .input-group label { display: block; font-size: 12px; color: var(--secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Progress Bar */
-        .progress-container { display: none; margin-top: 15px; background: #222; border-radius: 10px; overflow: hidden; }
-        #progress-bar { width: 0%; height: 8px; background: var(--secondary); transition: 0.3s; }
+        textarea { width: 100%; background: transparent; border: none; color: #fff; outline: none; font-size: 16px; resize: none; height: 60px; }
+        select { width: 100%; background: transparent; border: none; color: #fff; outline: none; font-size: 14px; cursor: pointer; }
+
+        /* Modern Progress Bar */
+        .progress-box { display: none; margin: 20px 0; }
+        .progress-bg { height: 6px; background: #222; border-radius: 10px; position: relative; overflow: hidden; }
+        #progress-fill { height: 100%; width: 0%; background: linear-gradient(to right, var(--secondary), var(--primary)); transition: 0.1s; }
+        .progress-text { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-top: 8px; }
+
+        .btn-post {
+            width: 100%; padding: 18px; border-radius: 15px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: #000; font-weight: bold; font-size: 16px; border: none;
+            cursor: pointer; box-shadow: 0 10px 20px rgba(254, 44, 85, 0.2);
+            transition: 0.3s;
+        }
+        .btn-post:disabled { filter: grayscale(1); cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-    <div class="header" style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-        <i class="fa-solid fa-xmark" onclick="history.back()" style="font-size: 22px;"></i>
-        <h2>পোস্ট তৈরি করুন</h2>
+    <div class="header">
+        <div style="width: 100%; display: flex; align-items: center; padding: 0 20px;">
+            <i class="fa-solid fa-arrow-left" onclick="history.back()"></i>
+            <h2 style="margin-left: 20px; font-size: 18px;">পোস্ট তৈরি করুন</h2>
+        </div>
     </div>
 
-    <div class="upload-container">
+    <div class="upload-wrapper">
         <input type="file" id="video-input" accept="video/*" hidden>
         
-        <div class="upload-card" id="drop-zone" onclick="document.getElementById('video-input').click()">
-            <i class="fa-solid fa-video"></i>
-            <p id="status-text">ভিডিও ফাইল সিলেক্ট করুন</p>
+        <div class="upload-area" id="drop-area" onclick="document.getElementById('video-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>ভিডিও সিলেক্ট করতে টাচ করুন</p>
+            <video id="preview-vid" loop muted autoplay></video>
         </div>
 
-        <div class="preview-box" id="preview-box">
-            <video id="preview-vid" controls></video>
+        <div class="progress-box" id="progress-box">
+            <div class="progress-bg"><div id="progress-fill"></div></div>
+            <div class="progress-text">
+                <span id="p-status">আপলোড হচ্ছে...</span>
+                <span id="p-percent">0%</span>
+            </div>
         </div>
 
-        <textarea id="up-caption" placeholder="ক্যাপশন লিখুন... #SojiDa #Viral"></textarea>
+        <div class="meta-box">
+            <div class="input-group">
+                <label>ক্যাপশন</label>
+                <textarea id="caption" placeholder="ভিডিও সম্পর্কে কিছু লিখুন... #SojiDa"></textarea>
+            </div>
 
-        <div class="setting-row">
-            <label><i class="fa-solid fa-earth-americas"></i> কে দেখতে পারবে?</label>
-            <select id="up-privacy" style="width: auto; margin-bottom: 0; padding: 5px;">
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-            </select>
+            <div class="input-group">
+                <label>ক্যাটাগরি</label>
+                <select id="category">
+                    <option value="entertainment">Entertainment</option>
+                    <option value="funny">Funny</option>
+                    <option value="tech">Tech</option>
+                    <option value="music">Music</option>
+                </select>
+            </div>
         </div>
 
-        <div class="setting-row">
-            <label><i class="fa-solid fa-list"></i> ক্যাটাগরি</label>
-            <select id="up-category" style="width: auto; margin-bottom: 0; padding: 5px;">
-                <option value="entertainment">Entertainment</option>
-                <option value="funny">Funny</option>
-                <option value="tech">Tech</option>
-                <option value="music">Music</option>
-            </select>
-        </div>
-
-        <div class="setting-row">
-            <label><i class="fa-solid fa-comment-slash"></i> কমেন্ট বন্ধ করুন?</label>
-            <input type="checkbox" id="up-comment-off">
-        </div>
-
-        <div class="progress-container" id="p-container">
-            <div id="progress-bar"></div>
-        </div>
-
-        <button class="publish-btn" id="pub-btn" onclick="startUpload()">পাবলিশ করুন</button>
+        <button class="btn-post" id="btn-post" onclick="handleUpload()">পাবলিশ করুন</button>
     </div>
 
     <div id="soji-overlay" class="overlay"></div>
@@ -88,72 +108,82 @@
 
     <script>
         const vInput = document.getElementById('video-input');
-        const pBox = document.getElementById('preview-box');
-        const pVid = document.getElementById('preview-vid');
-        const dz = document.getElementById('drop-zone');
-        let selectedFile = null;
+        const preview = document.getElementById('preview-vid');
+        const dropArea = document.getElementById('drop-area');
+        let videoFile = null;
 
         vInput.onchange = (e) => {
-            selectedFile = e.target.files[0];
-            if(selectedFile) {
-                dz.style.display = 'none';
-                pBox.style.display = 'block';
-                pVid.src = URL.createObjectURL(selectedFile);
-                document.getElementById('status-text').innerText = selectedFile.name;
+            videoFile = e.target.files[0];
+            if(videoFile) {
+                // ভিডিও সাইজ চেক (Max 50MB)
+                if(videoFile.size > 50 * 1024 * 1024) {
+                    return sojiAlert("ফাইলটি অনেক বড়! ৫০ এমবি-র নিচে ভিডিও দিন।");
+                }
+                
+                preview.src = URL.createObjectURL(videoFile);
+                preview.style.display = 'block';
+                dropArea.querySelector('i').style.display = 'none';
+                dropArea.querySelector('p').style.display = 'none';
             }
         };
 
-        async function startUpload() {
-            if(!selectedFile) return sojiAlert("আগে একটি ভিডিও সিলেক্ট করুন!");
+        async function handleUpload() {
+            if(!videoFile) return sojiAlert("দয়া করে একটি ভিডিও সিলেক্ট করুন!");
 
             const user = auth.currentUser;
-            const btn = document.getElementById('pub-btn');
-            const pBar = document.getElementById('progress-bar');
-            const pContainer = document.getElementById('p-container');
+            const btn = document.getElementById('btn-post');
+            const progressBox = document.getElementById('progress-box');
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercent = document.getElementById('p-percent');
 
             btn.disabled = true;
-            btn.innerText = "আপলোড হচ্ছে...";
-            pContainer.style.display = 'block';
+            progressBox.style.display = 'block';
 
-            // ১. ক্লাউডিনারি আপলোড (dlpwdx288)
+            // ক্লাউডিনারি আপলোড উইথ প্রোগ্রেস
             const formData = new FormData();
-            formData.append('file', selectedFile);
-            formData.append('upload_preset', 'sojida_videos'); // আপনার ভিডিও প্রেসেট আইডি
+            formData.append('file', videoFile);
+            formData.append('upload_preset', 'sojida_videos'); 
 
-            try {
-                // আমরা Fetch ব্যবহার করছি যাতে প্রোগ্রেস ট্র্যাকিং সহজ হয়
-                const response = await fetch('https://api.cloudinary.com/v1_1/dlpwdx288/video/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.cloudinary.com/v1_1/dlpwdx288/video/upload', true);
 
-                if(data.secure_url) {
-                    pBar.style.width = "100%";
-                    
-                    // ২. ফায়ারবেস ডেটা সেভ
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressFill.style.width = percent + '%';
+                    progressPercent.innerText = percent + '%';
+                }
+            };
+
+            xhr.onload = async () => {
+                const response = JSON.parse(xhr.responseText);
+                if (response.secure_url) {
+                    // ফায়ারবেসে ডাটা সেভ
                     await db.collection("videos").add({
-                        url: data.secure_url,
-                        caption: document.getElementById('up-caption').value,
-                        privacy: document.getElementById('up-privacy').value,
-                        category: document.getElementById('up-category').value,
-                        commentDisabled: document.getElementById('up-comment-off').checked,
+                        url: response.secure_url,
+                        caption: document.getElementById('caption').value,
+                        category: document.getElementById('category').value,
                         creatorId: user.uid,
                         creatorName: user.displayName || "SojiDa User",
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         likes: 0,
                         views: 0,
-                        likedBy: []
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    sojiAlert("আপনার ভিডিও সফলভাবে পাবলিশ হয়েছে!", "অভিনন্দন!");
+                    sojiAlert("আপনার ভিডিও সফলভাবে পাবলিশ হয়েছে!", "সফল!");
                     setTimeout(() => location.href = 'index.html', 2000);
+                } else {
+                    sojiAlert("আপলোড এরর! ক্লাউডিনারি সেটিংস চেক করুন।");
+                    btn.disabled = false;
                 }
-            } catch (error) {
-                sojiAlert("আপলোড ব্যর্থ হয়েছে! আবার চেষ্টা করুন।");
+            };
+
+            xhr.onerror = () => {
+                sojiAlert("সার্ভারে সমস্যা! আবার চেষ্টা করুন।");
                 btn.disabled = false;
-                btn.innerText = "পাবলিশ করুন";
-            }
+            };
+
+            xhr.send(formData);
         }
     </script>
 </body>
