@@ -1,4 +1,4 @@
-// Firebase Config
+// ১. ফায়ারবেস কনফিগারেশন
 const firebaseConfig = {
     apiKey: "AIzaSyBeCWMtjRiLaHhWiP-grW_8QDTRxf8ULLs",
     authDomain: "sojida.firebaseapp.com",
@@ -9,20 +9,14 @@ const firebaseConfig = {
     appId: "1:194824640211:web:2149cd020f898f40996626",
 };
 
-// ১. ইনিশিয়ালাইজেশন চেক
-try {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-        console.log("SojiDa Engine: Connected ✅");
-    }
-} catch (e) {
-    alert("ফায়ারবেস কানেক্ট হতে পারছে না! ইন্টারনাল এরর।");
+// ২. ইনিশিয়ালাইজেশন
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
-
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// ২. ইউনিভার্সাল অ্যালার্ট
+// ৩. ইউনিভার্সাল অ্যালার্ট সিস্টেম
 function sojiAlert(message, title = "SojiDa") {
     const overlay = document.getElementById('soji-overlay');
     const box = document.getElementById('soji-alert');
@@ -41,7 +35,58 @@ function closeSojiAlert() {
     document.getElementById('soji-alert').style.display = 'none';
 }
 
-// ৩. অটো লগইন রিডাইরেক্ট
+// ৪. ইনকাম ও ভিউ ট্র্যাকার (৫ সেকেন্ড ভিউ লজিক)
+function setupIncomeTracking(video, creatorId, videoId) {
+    let rewarded = false;
+    video.ontimeupdate = () => {
+        if (video.currentTime >= 5 && !rewarded) {
+            rewarded = true;
+            const currentUser = auth.currentUser;
+            
+            // নিজে দেখলে ইনকাম হবে না
+            if (currentUser && currentUser.uid !== creatorId) {
+                db.collection("users").doc(creatorId).update({
+                    balance: firebase.firestore.FieldValue.increment(0.10)
+                }).then(() => console.log("Income Added"))
+                  .catch(err => console.error("Income Error:", err));
+            }
+            
+            // ভিউ কাউন্ট আপডেট
+            db.collection("videos").doc(videoId).update({
+                views: firebase.firestore.FieldValue.increment(1)
+            });
+        }
+    };
+}
+
+// ৫. বাটন লজিক (Like & Share)
+async function handleLike(id, el) {
+    const user = auth.currentUser;
+    if(!user) return sojiAlert("লাইক দিতে লগইন করুন!");
+    const icon = el.querySelector('i');
+    try {
+        if(icon.classList.contains('fa-solid')) {
+            icon.classList.replace('fa-solid', 'fa-regular');
+            icon.style.color = "#fff";
+            await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(-1) });
+        } else {
+            icon.classList.replace('fa-regular', 'fa-solid');
+            icon.style.color = "#fe2c55";
+            await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) });
+        }
+    } catch(e) { sojiAlert("লাইক কাজ করছে না!"); }
+}
+
+function shareSojiDa(url) {
+    if (navigator.share) {
+        navigator.share({ title: 'SojiDa Video', url: url });
+    } else {
+        navigator.clipboard.writeText(url);
+        sojiAlert("ভিডিও লিঙ্ক কপি করা হয়েছে!");
+    }
+}
+
+// ৬. লগইন চেক (Auto Redirect)
 auth.onAuthStateChanged(user => {
     const path = window.location.pathname;
     if (!user && !path.includes('login.html') && !path.includes('register.html')) {
@@ -49,21 +94,4 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-// ৪. ভিডিও লাইক লজিক
-async function handleLike(id, el) {
-    const user = auth.currentUser;
-    if(!user) return sojiAlert("আগে লগইন করুন!");
-    
-    const icon = el.querySelector('i');
-    try {
-        if(icon.classList.contains('fa-solid')) {
-            icon.classList.replace('fa-solid', 'fa-regular');
-            await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(-1) });
-        } else {
-            icon.classList.replace('fa-regular', 'fa-solid');
-            await db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) });
-        }
-    } catch(err) {
-        console.log("Like Error: ", err);
-    }
-}
+console.log("SojiDa Master Engine: Ready 🚀");
