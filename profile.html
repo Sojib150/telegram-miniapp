@@ -3,58 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SojiDa | My Profile</title>
+    <title>SojiDa | Profile</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .profile-header { padding: 40px 20px 20px; text-align: center; border-bottom: 1px solid #222; }
-        .p-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--secondary); margin-bottom: 15px; object-fit: cover; }
-        .p-stats { display: flex; justify-content: center; gap: 30px; margin: 20px 0; }
-        .stat-item { text-align: center; }
-        .stat-item h4 { font-size: 18px; color: #fff; }
-        .stat-item p { font-size: 12px; color: #888; }
-        
-        .p-actions { display: flex; gap: 10px; justify-content: center; padding: 0 20px; }
-        .edit-btn { flex: 1; background: #222; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; }
-        .logout-btn { background: #331111; color: var(--primary); padding: 10px 15px; border-radius: 8px; border: none; }
-
-        .tabs { display: flex; border-bottom: 1px solid #222; margin-top: 20px; }
-        .tab-item { flex: 1; text-align: center; padding: 15px; color: #888; cursor: pointer; transition: 0.3s; }
-        .tab-item.active { color: #fff; border-bottom: 2px solid #fff; }
-
-        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
-        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; }
-        .grid-item video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
-        .v-views { position: absolute; bottom: 5px; left: 5px; font-size: 10px; color: #fff; text-shadow: 0 0 5px #000; }
-    </style>
 </head>
-<body>
-
-    <div class="profile-header">
-        <img id="u-avatar" src="https://via.placeholder.com/150" class="p-avatar">
-        <h3 id="u-name">Loading...</h3>
-        <p id="u-bio" style="font-size: 13px; color: #888; margin-top: 5px;">SojiDa Creator</p>
-
-        <div class="p-stats">
-            <div class="stat-item"><h4 id="count-following">0</h4><p>Following</p></div>
-            <div class="stat-item"><h4 id="count-followers">0</h4><p>Followers</p></div>
-            <div class="stat-item"><h4 id="count-likes">0</h4><p>Likes</p></div>
-        </div>
-
-        <div class="p-actions">
-            <button class="edit-btn" onclick="location.href='edit-profile.html'">Edit Profile</button>
-            <button class="logout-btn" onclick="logoutSoji()"><i class="fa-solid fa-right-from-bracket"></i></button>
-        </div>
+<body style="background: #000; color: #fff;">
+    <div class="header" style="justify-content: space-between; padding: 0 20px;">
+        <h2>প্রোফাইল</h2>
+        <i class="fa-solid fa-right-from-bracket" onclick="auth.signOut()"></i>
     </div>
 
-    <div class="tabs">
-        <div class="tab-item active" onclick="switchTab('my', this)"><i class="fa-solid fa-grip-vertical"></i></div>
-        <div class="tab-item" onclick="switchTab('saved', this)"><i class="fa-solid fa-heart"></i></div>
-        <div class="tab-item" onclick="switchTab('repost', this)"><i class="fa-solid fa-arrows-rotate"></i></div>
+    <div style="text-align: center; padding: 40px 20px;">
+        <img id="p-img" src="https://via.placeholder.com/150" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid #25f4ee;">
+        <h3 id="p-name" style="margin-top: 15px;">Loading...</h3>
+        <p id="p-bio" style="color: #888;">User Bio</p>
+        <button onclick="location.href='edit-profile.html'" style="margin-top: 20px; padding: 10px 30px; border-radius: 20px; border: 1px solid #333; background: none; color: #fff;">Edit Profile</button>
     </div>
-
-    <div class="video-grid" id="profile-feed">
-        </div>
 
     <nav class="navbar">
         <a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Home</span></a>
@@ -68,60 +32,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
-
     <script>
         auth.onAuthStateChanged(user => {
-            if (user) {
-                loadProfile(user.uid);
-                switchTab('my', document.querySelector('.tab-item.active'));
-            } else {
-                location.href = 'login.html';
+            if(user) {
+                db.collection("users").doc(user.uid).onSnapshot(doc => {
+                    const d = doc.data();
+                    document.getElementById('p-name').innerText = d.name;
+                    document.getElementById('p-bio').innerText = d.bio;
+                    if(d.photo) document.getElementById('p-img').src = d.photo;
+                });
             }
         });
-
-        async function loadProfile(uid) {
-            const doc = await db.collection("users").doc(uid).get();
-            if(doc.exists) {
-                const data = doc.data();
-                document.getElementById('u-name').innerText = data.name || "SojiDa User";
-                document.getElementById('u-bio').innerText = data.bio || "No bio yet.";
-                document.getElementById('u-avatar').src = data.photo || "https://via.placeholder.com/150";
-                document.getElementById('count-followers').innerText = data.followers || 0;
-                document.getElementById('count-following').innerText = data.following || 0;
-            }
-        }
-
-        async function switchTab(type, el) {
-            document.querySelectorAll('.tab-item').forEach(item => item.classList.remove('active'));
-            el.classList.add('active');
-            
-            const feed = document.getElementById('profile-feed');
-            feed.innerHTML = '';
-            const uid = auth.currentUser.uid;
-
-            let query;
-            if (type === 'my') {
-                query = db.collection("videos").where("creatorId", "==", uid);
-            } else if (type === 'saved') {
-                // ভিডিওতে লাইক করলে সেটি অটোমেটিক সেভড ট্যাবে আসবে
-                query = db.collection("videos").where("likedBy", "array-contains", uid);
-            }
-
-            const snap = await query.get();
-            snap.forEach(video => {
-                const data = video.data();
-                feed.innerHTML += `
-                    <div class="grid-item" onclick="location.href='index.html?v=${video.id}'">
-                        <video src="${data.url}"></video>
-                        <div class="v-views"><i class="fa-solid fa-play"></i> ${data.views || 0}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function logoutSoji() {
-            auth.signOut().then(() => location.href = 'login.html');
-        }
     </script>
 </body>
 </html>
