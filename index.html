@@ -2,54 +2,55 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SojiDa | Home</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div id="ad-view-top"></div> <div class="video-wrapper" id="feed"></div>
+    <div id="ad-view-top" style="position:fixed; top:0; width:100%; z-index:100; text-align:center;"></div>
+
+    <div id="feed" style="height:100vh; overflow-y:scroll; scroll-snap-type:y mandatory;"></div>
 
     <nav class="navbar">
-        <a href="index.html" class="nav-link active"><i class="fa-solid fa-house"></i><span>Home</span></a>
-        <a href="messages.html" class="nav-link"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></a>
+        <a href="index.html" class="nav-link active"><i class="fa-solid fa-house"></i>Home</a>
         <a href="upload.html" class="nav-link"><div class="plus-btn"><i class="fa-solid fa-plus"></i></div></a>
-        <a href="wallet.html" class="nav-link"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
-        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user"></i>Profile</a>
     </nav>
+
+    <div id="soji-overlay" class="overlay"></div>
+    <div id="soji-alert" class="alert-box"><h3 id="alert-title"></h3><p id="alert-msg"></p><button onclick="closeSojiAlert()">ঠিক আছে</button></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
     <script>
-        // ভিডিও লোড ও ইনকাম লজিক
-        db.collection("videos").orderBy("likes", "desc").onSnapshot(snap => {
+        // ১. অ্যাড লোড
+        db.collection("settings").doc("app_config").onSnapshot(doc => {
+            if(doc.exists && doc.data().adCode) {
+                const div = document.getElementById('ad-view-top');
+                div.innerHTML = doc.data().adCode;
+            }
+        });
+
+        // ২. ভিডিও লোড ও ইনকাম
+        db.collection("videos").orderBy("createdAt", "desc").onSnapshot(snap => {
             const feed = document.getElementById('feed');
             feed.innerHTML = '';
             snap.forEach(doc => {
                 const data = doc.data();
-                const id = doc.id;
                 const card = document.createElement('div');
-                card.className = 'video-card';
+                card.style = "height:100vh; scroll-snap-align:start; position:relative; background:#000;";
                 card.innerHTML = `
-                    <video src="${data.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div class="sidebar">
-                        <div class="icon-group"><i class="fa-solid fa-heart"></i><p>${data.likes || 0}</p></div>
+                    <video src="${data.url}" loop style="width:100%; height:100%; object-fit:cover;" onclick="this.paused?this.play():this.pause()"></video>
+                    <div style="position:absolute; bottom:100px; left:20px; text-shadow:2px 2px 5px #000;">
+                        <h3>@${data.creatorName}</h3>
+                        <p>${data.caption}</p>
                     </div>
-                    <div class="video-meta"><h3>@${data.creatorName}</h3><p>${data.caption}</p></div>
                 `;
                 const v = card.querySelector('video');
-                // ৫ সেকেন্ড ইনকাম লজিক
-                let rewarded = false;
-                v.ontimeupdate = () => {
-                    if (v.currentTime >= 5 && !rewarded) {
-                        rewarded = true;
-                        if(auth.currentUser && auth.currentUser.uid !== data.creatorId) {
-                            db.collection("users").doc(data.creatorId).update({ balance: firebase.firestore.FieldValue.increment(0.10) });
-                        }
-                    }
-                };
+                setupIncomeTracking(v, data.creatorId, doc.id);
                 feed.appendChild(card);
             });
         });
