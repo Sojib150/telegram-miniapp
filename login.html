@@ -6,26 +6,25 @@
     <title>SojiDa | Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body style="background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh;">
-    <div style="width: 90%; text-align: center; background: #111; padding: 30px; border-radius: 20px;">
-        <h1 style="color: #fe2c55; margin-bottom: 20px;">SojiDa Login</h1>
-        <input type="email" id="email" placeholder="ইমেইল" style="width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 10px; border: none; background: #222; color: #fff;">
-        <input type="password" id="pass" placeholder="পাসওয়ার্ড" style="width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 10px; border: none; background: #222; color: #fff;">
-        <button onclick="handleLogin()" style="width: 100%; background: #fe2c55; color: #fff; padding: 15px; border: none; border-radius: 10px; font-weight: bold;">লগইন করুন</button>
-        <p style="margin-top: 20px; font-size: 14px; color: #888;">নতুন ইউজার? <a href="register.html" style="color: #25f4ee;">রেজিস্টার করুন</a></p>
+<body style="background:#000; color:#fff; display:flex; align-items:center; justify-content:center; height:100vh;">
+    <div style="width:90%; text-align:center; background:#111; padding:30px; border-radius:20px; border:1px solid #222;">
+        <h1 style="color:#fe2c55; margin-bottom:20px;">SojiDa</h1>
+        <input type="email" id="email" placeholder="ইমেইল" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:none; background:#222; color:#fff;">
+        <input type="password" id="pass" placeholder="পাসওয়ার্ড" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px; border:none; background:#222; color:#fff;">
+        <button onclick="login()" style="width:100%; background:#fe2c55; color:#fff; padding:15px; border:none; border-radius:10px; font-weight:bold;">লগইন</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="app.js"></script>
     <script>
-        async function handleLogin() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
+        async function login() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
             try {
-                await auth.signInWithEmailAndPassword(email, pass);
-                location.href = 'index.html';
-            } catch (e) { alert("ভুল ইমেইল বা পাসওয়ার্ড!"); }
+                await auth.signInWithEmailAndPassword(e, p);
+                window.location.href = 'index.html';
+            } catch(err) { alert("ভুল ইমেইল বা পাসওয়ার্ড!"); }
         }
     </script>
 </body>
