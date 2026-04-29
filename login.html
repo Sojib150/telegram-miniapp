@@ -6,56 +6,26 @@
     <title>SojiDa | Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body style="background: #000;">
-
-    <div class="auth-container">
-        <div class="auth-header">
-            <h1>SojiDa</h1>
-            <p>স্বাগতম! আবার দেখা হওয়ায় ভালো লাগল।</p>
-        </div>
-
-        <div class="auth-card">
-            <div class="input-box">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="log-email" placeholder="আপনার ইমেইল">
-            </div>
-            <div class="input-box">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="log-pass" placeholder="পাসওয়ার্ড">
-            </div>
-            <button class="auth-btn" style="background: var(--secondary); color: #000;" id="log-submit" onclick="handleLogin()">লগইন করুন</button>
-        </div>
-
-        <p class="switch-auth">নতুন ইউজার? <a href="register.html">রেজিস্টার করুন</a></p>
+<body style="background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh;">
+    <div style="width: 90%; text-align: center; background: #111; padding: 30px; border-radius: 20px;">
+        <h1 style="color: #fe2c55; margin-bottom: 20px;">SojiDa Login</h1>
+        <input type="email" id="email" placeholder="ইমেইল" style="width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 10px; border: none; background: #222; color: #fff;">
+        <input type="password" id="pass" placeholder="পাসওয়ার্ড" style="width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 10px; border: none; background: #222; color: #fff;">
+        <button onclick="handleLogin()" style="width: 100%; background: #fe2c55; color: #fff; padding: 15px; border: none; border-radius: 10px; font-weight: bold;">লগইন করুন</button>
+        <p style="margin-top: 20px; font-size: 14px; color: #888;">নতুন ইউজার? <a href="register.html" style="color: #25f4ee;">রেজিস্টার করুন</a></p>
     </div>
-
-    <div id="soji-overlay" class="overlay"></div>
-    <div id="soji-alert" class="alert-box"><h3 id="alert-title">SojiDa</h3><p id="alert-msg"></p><button onclick="closeSojiAlert()">ঠিক আছে</button></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
-
     <script>
         async function handleLogin() {
-            const email = document.getElementById('log-email').value;
-            const pass = document.getElementById('log-pass').value;
-            const btn = document.getElementById('log-submit');
-
-            if(!email || !pass) return sojiAlert("দয়া করে ইমেইল ও পাসওয়ার্ড দিন।");
-
-            btn.disabled = true;
-            btn.innerText = "লগইন হচ্ছে...";
-
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
             try {
                 await auth.signInWithEmailAndPassword(email, pass);
                 location.href = 'index.html';
-            } catch (error) {
-                sojiAlert("ইমেইল বা পাসওয়ার্ড ভুল হয়েছে!");
-                btn.disabled = false;
-                btn.innerText = "লগইন করুন";
-            }
+            } catch (e) { alert("ভুল ইমেইল বা পাসওয়ার্ড!"); }
         }
     </script>
 </body>
