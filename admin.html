@@ -2,111 +2,161 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SojiDa | Admin Console</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Border Guardian: Monetag Pro</title>
+    <!-- Monetag Script (আপনার অরিজিনাল স্ক্রিপ্ট এখানে থাকবে) -->
+    <script src='https://alwingulla.com/tag.min.js' data-zone='9931551' async data-p='9931551'></script>
+    
     <style>
-        body { overflow-y: auto; padding: 20px; background: #0a0a0a; }
-        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-        .admin-card { background: #151515; border: 1px solid #222; padding: 20px; border-radius: 20px; }
-        .admin-card h3 { color: var(--secondary); margin-bottom: 15px; font-size: 18px; }
-        textarea, input { width: 100%; background: #222; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 10px; outline: none; }
-        .action-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .save-btn { background: var(--primary); color: #fff; }
-        .view-btn { background: var(--secondary); color: #000; }
-        .stats { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #888; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; touch-action: none; }
+        canvas { display: block; }
+        
+        .hud {
+            position: absolute; top: 10px; width: 100%; display: flex; 
+            justify-content: space-around; color: #00ff88; font-size: 16px; pointer-events: none;
+            text-shadow: 0 0 10px #00ff88; z-index: 10;
+        }
+
+        /* Ad & Shop Buttons */
+        .btn-container { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 30; }
+        .action-btn {
+            padding: 10px 20px; background: #f1c40f; border-radius: 30px; 
+            font-weight: bold; cursor: pointer; border: 2px solid #fff; color: #000;
+        }
+        #ad-btn { background: #00d4ff; }
+
+        /* Shop UI */
+        #shop-menu {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; background: rgba(0, 0, 0, 0.95); border: 2px solid #00ff88;
+            padding: 20px; display: none; flex-direction: column; gap: 15px; z-index: 40;
+            border-radius: 15px; color: #fff;
+        }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
+        .buy-btn { background: #00ff88; border: none; padding: 8px 12px; font-weight: bold; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>SojiDa Admin 🛠️</h1>
+    <div class="hud">
+        <div>CASH: ৳<span id="cash">0</span></div>
+        <div id="lvl-rank">RANK: ELITE</div>
+        <div>SCORE: <span id="score">0</span></div>
     </div>
 
-    <div class="admin-grid">
-        <div class="admin-card">
-            <h3><i class="fa-solid fa-ad"></i> বিজ্ঞাপন সেটিংস</h3>
-            <label>অ্যাড কোড (Monetag/Adsterra):</label>
-            <textarea id="ad-code-input" rows="5" placeholder="বিজ্ঞাপন স্ক্রিপ্ট এখানে দিন..."></textarea>
-            <button class="action-btn save-btn" onclick="updateAdSetting()">বিজ্ঞাপন আপডেট করুন</button>
-        </div>
-
-        <div class="admin-card">
-            <h3><i class="fa-solid fa-coins"></i> ইনকাম ও রেট</h3>
-            <label>প্রতি ভিউ আয় (৳):</label>
-            <input type="number" id="income-rate" step="0.01" value="0.10">
-            <label>মিনিমাম উইথড্র (৳):</label>
-            <input type="number" id="min-withdraw" value="50">
-            <button class="action-btn save-btn" onclick="updateRates()">রেট সেভ করুন</button>
-        </div>
-
-        <div class="admin-card">
-            <h3><i class="fa-solid fa-users"></i> ইউজার কন্ট্রোল</h3>
-            <div class="stats"><span>মোট ইউজার:</span> <span id="total-users">Loading...</span></div>
-            <input type="text" id="target-uid" placeholder="ইউজার আইডি (UID)">
-            <button class="action-btn view-btn" style="margin-bottom: 10px;" onclick="searchUser()">ইউজার চেক করুন</button>
-            <button class="action-btn" style="background: #e67e22; color: #fff;" onclick="banUser()">ব্যান / আনব্যান</button>
-        </div>
+    <div class="btn-container">
+        <div id="ad-btn" class="action-btn" onclick="watchAdForCash()">📺 FREE ৳500</div>
+        <div id="shop-btn" class="action-btn" onclick="toggleShop()">🛒 SHOP</div>
     </div>
 
-    <div id="soji-overlay" class="overlay"></div>
-    <div id="soji-alert" class="alert-box">
-        <h3 id="alert-title">SojiDa</h3>
-        <p id="alert-msg"></p>
-        <button onclick="closeSojiAlert()">ঠিক আছে</button>
+    <div id="shop-menu">
+        <h2 style="color:#00ff88; text-align:center; margin:0;">UPGRADE SHOP</h2>
+        <div class="shop-item"><span>Fast Fire (৳500)</span><button class="buy-btn" onclick="buyUpgrade('fire')">BUY</button></div>
+        <div class="shop-item"><span>Triple Shot (৳2000)</span><button class="buy-btn" onclick="buyUpgrade('triple') Bryan">BUY</button></div>
+        <button style="margin-top:10px; background:#ff0055; color:#fff; border:none; padding:10px; border-radius:5px;" onclick="toggleShop()">CLOSE</button>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="app.js"></script>
+    <canvas id="gameCanvas"></canvas>
 
-    <script>
-        // সেটিংস লোড করা
-        db.collection("settings").doc("app_config").onSnapshot(doc => {
-            if(doc.exists) {
-                const data = doc.data();
-                document.getElementById('ad-code-input').value = data.adCode || '';
-                document.getElementById('income-rate').value = data.perViewIncome || 0.10;
-                document.getElementById('min-withdraw').value = data.minWithdraw || 50;
+<script>
+    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+    // --- Monetag Ad Function ---
+    function watchAdForCash() {
+        if (typeof show_9931551 === 'function') {
+            isPaused = true; // অ্যাড চলার সময় গেম পজ
+            show_9931551().then(() => {
+                // রিওয়ার্ড লজিক
+                money += 500;
+                document.getElementById('cash').innerText = money;
+                alert('অভিনন্দন! আপনি ৳৫০০ বোনাস পেয়েছেন।');
+                isPaused = false;
+                loop();
+            }).catch((e) => {
+                alert('বিজ্ঞাপনটি লোড হতে পারেনি। আবার চেষ্টা করুন।');
+                isPaused = false;
+                loop();
+            });
+        } else {
+            alert('বিজ্ঞাপন এখন উপলভ্য নয়।');
+        }
+    }
+
+    // --- গেম লজিক ---
+    const bg = new Image(); bg.src = 'https://i.imgur.com/k2xOUh8.png';
+    const ship = new Image(); ship.src = 'https://i.imgur.com/Y4ASFoJ.png';
+    const enemyImg = new Image(); enemyImg.src = 'https://i.imgur.com/N6RSQ0V.jpeg';
+
+    let score = 0, money = 0, frame = 0, isPaused = false;
+    let fireDelay = 12, hasTripleShot = false;
+
+    const player = { x: canvas.width/2-35, y: canvas.height-180, w: 70, h: 70 };
+    const bullets = [], enemies = [], coins = [];
+
+    function toggleShop() {
+        isPaused = !isPaused;
+        document.getElementById('shop-menu').style.display = isPaused ? 'flex' : 'none';
+        if(!isPaused) loop();
+    }
+
+    function buyUpgrade(type) {
+        if(type === 'fire' && money >= 500) { money -= 500; fireDelay = 7; alert("ফায়ার স্পিড বেড়েছে!"); }
+        else if(type === 'triple' && money >= 2000) { money -= 2000; hasTripleShot = true; alert("ট্রিপল শট আনলকড!"); }
+        else { alert("পর্যাপ্ত টাকা নেই!"); }
+        document.getElementById('cash').innerText = money;
+    }
+
+    window.addEventListener('touchmove', e => { if(!isPaused) player.x = e.touches[0].clientX - player.w/2; });
+
+    function loop() {
+        if(isPaused) return;
+        frame++;
+        
+        ctx.drawImage(bg, 0, (frame % canvas.height), canvas.width, canvas.height);
+        ctx.drawImage(bg, 0, (frame % canvas.height) - canvas.height, canvas.width, canvas.height);
+        ctx.drawImage(ship, player.x, player.y, player.w, player.h);
+
+        if(frame % fireDelay === 0) {
+            bullets.push({x: player.x + 10, y: player.y});
+            bullets.push({x: player.x + player.w - 15, y: player.y});
+            if(hasTripleShot) bullets.push({x: player.x + player.w/2 - 2, y: player.y - 10});
+        }
+
+        bullets.forEach((b, i) => {
+            b.y -= 15;
+            ctx.fillStyle = "#00ffff";
+            ctx.fillRect(b.x, b.y, 4, 15);
+            if(b.y < 0) bullets.splice(i, 1);
+        });
+
+        if(frame % 50 === 0) enemies.push({x: Math.random()*(canvas.width-60), y: -60, w: 60, h: 60});
+        enemies.forEach((e, ei) => {
+            e.y += 4;
+            ctx.drawImage(enemyImg, e.x, e.y, e.w, e.h);
+            bullets.forEach((bi, i) => {
+                if(bi.x > e.x && bi.x < e.x+e.w && bi.y < e.y+e.h) {
+                    enemies.splice(ei, 1); bullets.splice(i, 1);
+                    score += 10; document.getElementById('score').innerText = score;
+                    coins.push({x: e.x + e.w/2, y: e.y});
+                }
+            });
+        });
+
+        coins.forEach((cn, ci) => {
+            cn.y += 5;
+            ctx.fillStyle = "#ffd700";
+            ctx.beginPath(); ctx.arc(cn.x, cn.y, 10, 0, 7); ctx.fill();
+            if(cn.y > player.y && Math.abs(cn.x - (player.x + player.w/2)) < 50) {
+                money += 50; document.getElementById('cash').innerText = money;
+                coins.splice(ci, 1);
             }
         });
 
-        // ইউজার সংখ্যা গণনা
-        db.collection("users").onSnapshot(snap => {
-            document.getElementById('total-users').innerText = snap.size;
-        });
-
-        async function updateAdSetting() {
-            const code = document.getElementById('ad-code-input').value;
-            await db.collection("settings").doc("app_config").set({ adCode: code }, { merge: true });
-            sojiAlert("বিজ্ঞাপন সফলভাবে আপডেট করা হয়েছে!");
-        }
-
-        async function updateRates() {
-            const rate = parseFloat(document.getElementById('income-rate').value);
-            const min = parseInt(document.getElementById('min-withdraw').value);
-            await db.collection("settings").doc("app_config").set({
-                perViewIncome: rate,
-                minWithdraw: min
-            }, { merge: true });
-            sojiAlert("ইনকাম রেট সেভ হয়েছে!");
-        }
-
-        async function banUser() {
-            const uid = document.getElementById('target-uid').value;
-            if(!uid) return sojiAlert("ইউজার আইডি দিন!");
-            const userRef = db.collection("users").doc(uid);
-            const doc = await userRef.get();
-            if(doc.exists) {
-                const currentStatus = doc.data().status;
-                const newStatus = currentStatus === 'banned' ? 'active' : 'banned';
-                await userRef.update({ status: newStatus });
-                sojiAlert(`ইউজার এখন ${newStatus === 'banned' ? 'ব্যান' : 'আনব্যান'} হয়েছে।`);
-            } else {
-                sojiAlert("এই ইউজারকে খুঁজে পাওয়া যায়নি!");
-            }
-        }
-    </script>
+        requestAnimationFrame(loop);
+    }
+    loop();
+</script>
 </body>
 </html>
